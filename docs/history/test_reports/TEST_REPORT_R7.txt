@@ -1,0 +1,27 @@
+TaskHub 8.0.3 LAN R7 - Automated Test Report
+
+Automated unit/regression tests: 122
+Passed: 120
+Failed: 0
+Skipped: 2 (v6.2.1 comparison source was not included)
+
+Release checks:
+- Python syntax and AST: passed
+- JavaScript syntax through Node.js: passed
+- LAN configuration and HTTP-only guard: passed
+- Durable server-chat restart round-trip: passed
+- RBAC catalog and endpoint mapping: passed
+- Legacy statement price/status migration markers: passed
+- Employer full-approval and rejection rules: passed
+- Pre-decision edit and post-decision lock rules: passed
+- Contract balance and financial-progress presentation: passed
+- Build/font guards: passed
+
+Dataset validation from supplied legacy exports/results:
+- TaxPayerStatusId is not a reliable employer approval flag.
+- Positive legacy confirmed amount is the migration approval signal.
+- Current imported database result indicates 364 approved legacy statements among 475 imported statements.
+
+Limitations:
+- The Windows EXE and the production SQL Server were not executed in this Linux test environment.
+- VERIFY_R7_FINANCIAL_STATUS.sql is included for read-only post-deployment validation.

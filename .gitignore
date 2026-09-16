@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.venv*/
+
+# PyInstaller output (build.bat regenerates the spec file)
+build/
+dist/
+*.spec
+
+# Local configuration and runtime data - never commit these
+taskhub_config.json
+taskhub_data/
+data/
+backups/
+taskhub_log.txt
+initial_admin_password.txt
+
+# Node test helpers
+node_modules/

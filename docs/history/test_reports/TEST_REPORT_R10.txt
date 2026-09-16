@@ -1,0 +1,28 @@
+TaskHub 8.1.0 LAN R10 - Release Test Report
+Generated: 2026-07-29
+
+RESULT
+- Automated tests: 164 passed
+- Skipped: 2
+- Failed: 0
+- LAN release checks: passed
+- Python compile checks: passed
+- JavaScript parse checks: passed
+- Forbidden pattern audit: passed
+- ProjectTypes mutation audit: passed
+
+COVERAGE HIGHLIGHTS
+- Team-scoped users, projects, tasks, schedules, reports and phonebook
+- Company-wide scope restricted to admin, finance and reporter
+- Mandatory primary team for manager, planner, support, supervisor and employer
+- Privileged-role escalation prevention
+- Granular RBAC for small UI actions and server endpoints
+- Sensitive project notes view/manage permissions with team scope
+- Chat image/file upload and download permissions
+- Fix for undefined JavaScript response variable in chat file download
+- Dynamic ProjectTypes loading and preservation of custom rows
+- Additive R10 migration and active-primary-team uniqueness
+
+NOTES
+- The two skipped tests compare against an external 6.2.1 source tree that is not included in this package.
+- Windows EXE creation must be performed on Windows by running build.bat.

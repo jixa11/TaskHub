@@ -1,0 +1,22 @@
+TaskHub 8.1.1 LAN R11 - Test Report
+========================================
+
+Automated tests: 173
+Passed: 171
+Failed: 0
+Skipped: 2 (optional comparison source for v6.2.1 is not packaged)
+
+Additional release checks:
+- Python compilation: passed
+- JavaScript syntax (v7_ui.js, v8_ui.js, service-worker.js): passed
+- RBAC catalog and migration checks: passed
+- Self-service account permission checks: passed
+- Independent phonebook API and permission checks: passed
+- Global shared-city and duplicate handling checks: passed
+- Team-scoped minimal task-contract endpoint checks: passed
+- Open/type-aware contract filtering and auto-selection checks: passed
+- LAN configuration, build guards and durable chat checks: passed
+
+Command results:
+- python run_tests.py: OK
+- python run_lan_checks.py: OK

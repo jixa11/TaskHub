@@ -1,0 +1,39 @@
+TaskHub 8.0.3 LAN R6 - Automated Test Report
+=================================================
+
+Test environment
+- Source/runtime checks: Linux container
+- Python unit/static tests: PASS
+- JavaScript parser checks (Node --check): PASS
+- LAN release checks: PASS
+- Legacy migration dry-run: PASS
+
+Automated test suite
+- Total tests: 115
+- Passed: 113
+- Failed: 0
+- Skipped: 2
+- Skip reason: the old v6.2.1 comparison source is not included in the package.
+
+Migration reconciliation
+- Contracts seen: 144; inserted: 143; sentinel: 1
+- Extensions seen: 2046; inserted: 40; orphan: 2006
+- Ambiguous extension prices after R6 rules: 0
+- Statements seen in packaged Excel: 480; inserted: 475; orphan: 5
+- Quarantine total: 2016
+
+R6-specific checks
+- New permission catalog keys and admin-only access-control boundary
+- Historical contract project relink confirmation, authorization and dependency moves
+- Extension/statement editing in all statuses with draft reset
+- One-time repair of imported statement amounts
+- Snapshot handling for legacy extension IDs 3029 and 3030
+- Contract child-page filter reset
+- Effective end date from latest valid time extension
+- Sortable grid headers and money-input thousands separators
+- Updated help/training and R6 version/build output
+- Durable LAN chat regression checks retained
+
+Limitations
+- A Windows EXE, live SQL Server, real browser/mobile and production data were not executed in this Linux environment.
+- build.bat reruns the complete automated suite and LAN checks before creating the EXE.

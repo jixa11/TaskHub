@@ -1,0 +1,17 @@
+{
+  "name": "تسک هاب",
+  "short_name": "تسک هاب",
+  "description": "مدیریت تیم، پروژه، تسک و پیامرسان سازمانی",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07071a",
+  "theme_color": "#080818",
+  "icons": [
+    {"src": "/assets/taskhub-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "/assets/taskhub-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

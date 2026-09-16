@@ -1,0 +1,29 @@
+TaskHub 8.0.3 LAN R5 - Source Test Report
+Date: 2026-07-27
+
+Scope tested
+------------
+1. Jalali financial month selection and monthly target/data markers.
+2. Jalali/Gregorian conversion round-trip for years 1390 through 1410:
+   - 504 date round-trips
+   - 252 Jalali month-window and previous-month checks
+3. Financial-plan monthly grouped chart and cumulative SVG chart wiring.
+4. Jalali task-completion comparison against the previous Jalali month.
+5. Chat group rename, group delete, direct-chat removal, member leave and owner-promotion guards.
+6. RBAC endpoint mappings and permission-driven UI markers.
+7. Updated in-app help content.
+8. Python syntax, JavaScript syntax, service-worker syntax, LAN configuration and build guards.
+
+Automated results
+-----------------
+- unittest suite: 101 tests executed, 99 passed, 0 failed, 2 skipped.
+- The 2 skipped tests require the external v6.2.1 comparison source, which is intentionally not packaged.
+- run_lan_checks.py: PASSED.
+- node --check v7_ui.js: PASSED.
+- node --check v8_ui.js: PASSED.
+- node --check service-worker.js: PASSED.
+- py_compile for v7_features.py, v8_features.py, rbac.py and config.py: PASSED.
+
+Environment limitation
+----------------------
+The source was tested in the available Linux build environment. A real Windows EXE, live SQL Server database, multi-browser session and mobile-device run cannot be executed here. build.bat reruns the automated checks before creating the Windows executable; final acceptance should include a backup-backed smoke test on the target Windows server.

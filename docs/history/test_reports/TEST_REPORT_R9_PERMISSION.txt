@@ -1,0 +1,7 @@
+TaskHub 8.0.3 LAN R9 - Permission Granularity Audit
+========================================================
+JavaScript syntax: PASS (v7_ui.js, v8_ui.js, inline ui.html scripts)
+Python compile: PASS (rbac.py, taskhub.py, v7_features.py, v8_features.py, v802_features.py)
+Automated tests: 149 PASS, 2 SKIPPED
+Version: unchanged (8.0.3-LAN-R9)
+Live Windows/SQL deployment test: NOT PERFORMED in this environment

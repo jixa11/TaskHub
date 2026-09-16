@@ -1,0 +1,240 @@
+/* R13 points, coins and item shop.
+   Built on the application's own tokens so it follows the theme switch.
+   Gold is reserved for coins and rewards; everything else stays in the
+   sapphire/sky palette the rest of the system uses. */
+:root{--gm-gold:#F2B544;--gm-gold-soft:rgba(242,181,68,.13);--gm-gold-line:rgba(242,181,68,.38);}
+
+.gm-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px;}
+.gm-tab{border:1px solid var(--border);background:var(--card);color:var(--txt2);border-radius:999px;
+  padding:7px 15px;font-family:inherit;font-size:12px;cursor:pointer;}
+.gm-tab:hover{border-color:var(--sapphire);color:var(--txt);}
+.gm-tab.active{background:rgba(62,112,201,.18);border-color:var(--sapphire);color:var(--sky);font-weight:700;}
+.gm-tab:focus-visible,.gm-chip:focus-visible,.gm-heart:focus-visible,.gm-star:focus-visible{outline:2px solid var(--sky);outline-offset:2px;}
+
+.gm-note{background:var(--gm-gold-soft);border:1px solid var(--gm-gold-line);color:var(--txt);border-radius:10px;
+  padding:10px 14px;font-size:12px;line-height:1.9;margin:0 0 14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+.gm-muted{color:var(--txt3);font-size:11px;line-height:1.8;}
+.gm-warn{color:var(--orange);font-size:11px;}
+.gm-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;min-width:0;}
+.gm-card h4{margin:0 0 12px;font-size:13px;color:var(--txt);font-weight:700;}
+.gm-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px;margin-bottom:14px;}
+.gm-grid2>.gm-card{margin-bottom:0;}
+
+.gm-coin{display:inline-flex;align-items:center;gap:5px;font-weight:800;color:var(--gm-gold);
+  font-variant-numeric:tabular-nums;white-space:nowrap;}
+.gm-coin i{width:13px;height:13px;flex:0 0 13px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#FFE39A,#C98B12 72%);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35),0 0 0 1px #B37A0C;}
+.gm-wallet{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2);background:var(--gm-gold-soft);
+  border:1px solid var(--gm-gold-line);border-radius:999px;padding:5px 12px;}
+
+.gm-bar{display:block;height:7px;border-radius:999px;background:var(--border);overflow:hidden;margin:6px 0 4px;}
+.gm-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--sapphire),var(--sky));}
+
+.gm-level{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.gm-level-badge{flex:0 0 auto;min-width:78px;text-align:center;padding:10px 12px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(62,112,201,.3),rgba(25,196,236,.14));border:1px solid rgba(91,141,255,.3);
+  color:var(--sky);font-weight:800;font-size:14px;}
+.gm-level-main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.gm-level-main b{font-size:15px;color:var(--txt);}
+.gm-level-main small{color:var(--txt3);font-size:11px;}
+
+.gm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;}
+.gm-stat{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+  display:flex;flex-direction:column;gap:3px;min-width:0;}
+.gm-stat span{font-size:11px;color:var(--txt3);}
+.gm-stat b{font-size:14px;color:var(--txt);font-variant-numeric:tabular-nums;}
+.gm-stat small{font-size:10px;color:var(--txt3);line-height:1.6;}
+
+.gm-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.gm-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:4px 10px;border-radius:999px;
+  background:var(--gm-gold-soft);border:1px solid var(--gm-gold-line);color:var(--txt);}
+.gm-badge small{color:var(--txt3);}
+.gm-pill{display:inline-block;font-size:10px;padding:1px 8px;border-radius:999px;border:1px solid var(--border);
+  color:var(--txt3);white-space:nowrap;}
+.gm-pill.ok{border-color:rgba(31,189,119,.4);color:var(--green);}
+.gm-pill.fest{border-color:var(--gm-gold-line);color:var(--gm-gold);}
+
+.gm-quests{display:flex;flex-direction:column;gap:10px;}
+.gm-quest-team{font-size:11px;color:var(--txt3);}
+.gm-quest{padding:9px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--border);}
+.gm-quest.ok{border-color:rgba(31,189,119,.35);}
+.gm-quest.ok .gm-bar i{background:linear-gradient(90deg,#1FBD77,#5FE0A6);}
+.gm-quest-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;}
+.gm-quest-head b{margin-inline-end:auto;color:var(--txt);}
+.gm-quest small{font-size:11px;color:var(--txt3);}
+
+.gm-top3{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+.gm-top3-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:12px;
+  padding:6px 10px;border-radius:9px;background:var(--card2);}
+.gm-top3-row.me{outline:1px solid var(--sapphire);}
+.gm-top3-row b{font-variant-numeric:tabular-nums;}
+
+.gm-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;align-items:center;}
+.gm-chip{border:1px solid var(--border);background:var(--card2);color:var(--txt2);border-radius:999px;padding:5px 12px;
+  font-family:inherit;font-size:11px;cursor:pointer;}
+.gm-chip.active{border-color:var(--gm-gold-line);background:var(--gm-gold-soft);color:var(--txt);font-weight:700;}
+.gm-sel{background:var(--card2);border:1px solid var(--border);color:var(--txt);border-radius:8px;padding:6px 10px;
+  font-family:inherit;font-size:12px;min-width:150px;max-width:100%;}
+
+.gm-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;}
+.gm-item{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;
+  flex-direction:column;transition:border-color .15s;}
+.gm-item:hover{border-color:rgba(91,141,255,.35);}
+.gm-item.off{opacity:.55;}
+.gm-item-img{aspect-ratio:16/10;max-width:100%;background:var(--card2) center/cover no-repeat;display:grid;place-items:center;
+  font-size:40px;border-bottom:1px solid var(--border);}
+.gm-item-body{padding:12px 14px;display:flex;flex-direction:column;gap:6px;flex:1;}
+.gm-item-top{display:flex;align-items:flex-start;gap:8px;}
+.gm-item-top b{flex:1;font-size:13px;color:var(--txt);line-height:1.7;}
+.gm-heart{background:none;border:0;color:var(--txt3);font-size:17px;cursor:pointer;line-height:1;padding:2px;}
+.gm-heart.on{color:var(--coral);}
+.gm-item-type{font-size:11px;color:var(--sky);}
+.gm-item-body p{margin:0;font-size:11.5px;color:var(--txt2);line-height:1.9;}
+.gm-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.gm-tag{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--card2);border:1px solid var(--border);color:var(--txt2);}
+.gm-tag.off{color:var(--coral);border-color:rgba(236,124,129,.35);}
+.gm-tag.fest{color:var(--gm-gold);border-color:var(--gm-gold-line);background:var(--gm-gold-soft);}
+.gm-pot small{font-size:10px;color:var(--txt3);}
+.gm-item-foot{margin-top:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;
+  padding-top:8px;border-top:1px dashed var(--border);}
+.gm-price{display:inline-flex;align-items:center;gap:6px;font-size:13px;}
+.gm-price s{color:var(--txt3);font-size:11px;}
+.gm-item-act{display:flex;flex-wrap:wrap;align-items:center;gap:6px;justify-content:flex-end;}
+.gm-buy{height:32px;padding:0 14px;font-size:12px;}
+.gm-buy[disabled]{opacity:.5;cursor:not-allowed;}
+.gm-buy-sum{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:var(--card2);
+  border:1px solid var(--border);margin-bottom:12px;font-size:12px;}
+
+.gm-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;}
+.gm-table{width:100%;border-collapse:collapse;font-size:12px;min-width:560px;}
+.gm-table th{background:var(--card2);color:var(--txt3);font-weight:700;text-align:right;padding:9px 12px;white-space:nowrap;}
+.gm-table td{padding:9px 12px;border-top:1px solid var(--border);vertical-align:top;}
+.gm-table td.gm-acts{white-space:nowrap;}
+.gm-acts .v7-mini{margin:2px;}
+.gm-plus{color:var(--green);font-weight:700;font-variant-numeric:tabular-nums;}
+.gm-minus{color:var(--coral);font-weight:700;font-variant-numeric:tabular-nums;}
+.gm-archived td{opacity:.5;}
+.gm-status{display:inline-block;font-size:10.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--border);
+  color:var(--txt2);white-space:nowrap;}
+.gm-status.s-scheduled,.gm-status.s-active,.gm-status.s-delivered,.gm-status.s-paid,.gm-status.s-running{
+  color:var(--green);border-color:rgba(31,189,119,.35);}
+.gm-status.s-pending_payment,.gm-status.s-pending_delivery,.gm-status.s-awaiting_date,.gm-status.s-upcoming{
+  color:var(--orange);border-color:rgba(246,169,68,.35);}
+.gm-status.s-cancelled,.gm-status.s-finished{color:var(--txt3);}
+.gm-status.s-contributed{color:var(--gm-gold);border-color:var(--gm-gold-line);}
+
+.gm-feed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+.gm-feed li{padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;line-height:1.9;color:var(--txt2);}
+.gm-feed li:last-child{border-bottom:0;}
+.gm-feed li b{color:var(--txt);}
+.gm-feed small{display:block;color:var(--txt3);font-size:10px;}
+.gm-reason{font-size:11px;color:var(--txt2);background:var(--card2);border-radius:8px;padding:6px 10px;margin-top:4px;}
+
+.gm-badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:10px;}
+.gm-badge-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;
+  flex-direction:column;gap:4px;}
+.gm-badge-card.mine{border-color:var(--gm-gold-line);background:var(--gm-gold-soft);}
+.gm-badge-icon{font-size:22px;}
+.gm-badge-card b{font-size:13px;color:var(--txt);}
+.gm-badge-card p{margin:0;font-size:11px;color:var(--txt2);line-height:1.8;}
+.gm-badge-card small{font-size:10px;color:var(--txt3);}
+.gm-season{padding:10px 0;border-bottom:1px solid var(--border);}
+.gm-season:last-child{border-bottom:0;}
+.gm-season>b{display:block;margin-bottom:8px;font-size:12px;color:var(--sky);}
+.gm-season-teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:8px;}
+.gm-season-team{background:var(--card2);border-radius:10px;padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:3px;}
+.gm-season-team small{color:var(--txt3);}
+
+/* A classic podium: second, first, third - first on the start side in RTL
+   would read as a plain list, so first sits in the middle. */
+.gm-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end;}
+.gm-podium>div{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center;
+  display:flex;flex-direction:column;gap:4px;min-width:0;}
+.gm-podium>div span{font-size:22px;}
+.gm-podium>div b{font-size:12px;color:var(--txt);overflow-wrap:anywhere;}
+.gm-podium>div small{font-size:10px;color:var(--txt3);}
+.gm-podium>.gm-podium-1{order:2;padding-block:20px;border-color:var(--gm-gold-line);}
+.gm-podium>.gm-podium-2{order:1;}
+.gm-podium>.gm-podium-3{order:3;}
+.gm-podium>div.me{outline:1px solid var(--sapphire);}
+.gm-me-line{margin-top:12px;font-size:12px;color:var(--txt2);}
+.gm-cmp{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,2fr) auto;gap:10px;align-items:center;font-size:12px;padding:5px 0;}
+.gm-cmp small{color:var(--txt3);}
+.gm-cmp .gm-bar{margin:0;}
+
+.gm-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px;}
+.gm-thumb{width:44px;height:44px;border-radius:9px;background:var(--card2) center/cover no-repeat;display:grid;place-items:center;
+  font-size:20px;border:1px solid var(--border);}
+.gm-item-form{display:grid;grid-template-columns:200px minmax(0,1fr);gap:18px;}
+.gm-img-edit{display:flex;flex-direction:column;gap:8px;align-items:stretch;}
+.gm-img-preview{aspect-ratio:1;max-width:100%;border-radius:12px;background:var(--card2) center/cover no-repeat;
+  border:1px dashed var(--border);display:grid;place-items:center;font-size:36px;}
+.gm-img-preview.has{border-style:solid;}
+.gm-file-btn{position:relative;justify-content:center;cursor:pointer;overflow:hidden;}
+.gm-file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.gm-form-main{min-width:0;}
+.gm-checks{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--txt2);margin-top:4px;}
+.gm-checks label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
+.gm-fest-list{display:flex;flex-direction:column;gap:6px;max-height:44vh;overflow-y:auto;padding:4px;margin-top:6px;}
+.gm-fest-row{display:grid;grid-template-columns:auto minmax(0,1fr) 90px;gap:10px;align-items:center;padding:8px 10px;
+  border:1px solid var(--border);border-radius:10px;background:var(--card2);cursor:pointer;}
+.gm-fest-row .fi{margin:0;}
+.gm-pct{text-align:center;}
+
+.gm-kudos{margin-top:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--gm-gold-line);background:var(--gm-gold-soft);
+  display:flex;flex-direction:column;gap:8px;font-size:12px;}
+.gm-kudos>div{display:flex;flex-wrap:wrap;gap:6px;}
+
+.gm-stars{display:inline-flex;gap:2px;}
+.gm-star{background:none;border:0;font-size:22px;line-height:1;color:var(--txt3);opacity:.45;cursor:pointer;padding:0 1px;}
+.gm-star.on{color:var(--gm-gold);opacity:1;}
+.gm-month-row{display:flex;flex-direction:column;gap:10px;}
+.gm-month-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+.gm-card-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:6px;}
+.gm-card-list li{background:var(--card2);border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;font-size:11px;}
+.gm-card-list li span{color:var(--txt3);}
+.gm-card-list li b{color:var(--txt);font-weight:600;}
+.gm-month-form{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:10px;align-items:center;}
+.gm-month-form .fi{margin:0;}
+
+.gm-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:10px;margin-bottom:14px;}
+.gm-tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;
+  gap:6px;font-size:11px;color:var(--txt3);}
+.gm-tile .gm-coin{font-size:17px;}
+.gm-settings{display:flex;flex-direction:column;}
+.gm-setting{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.gm-setting b{display:block;font-size:12px;color:var(--txt);}
+.gm-setting .fi{margin:0;}
+.gm-setting .sw{justify-self:start;}
+.gm-wish{padding:6px 0;}
+.gm-wish b{font-size:12px;}
+.gm-wish small{font-size:10px;color:var(--txt3);}
+
+/* Cosmetics bought in the shop. Frames ring the avatar; bubble colours tint
+   that person's messages for everyone who reads them. */
+.gm-frame-gold{box-shadow:0 0 0 2px #F2B544,0 0 12px rgba(242,181,68,.5)!important;}
+.gm-frame-silver{box-shadow:0 0 0 2px #CBD5E1,0 0 10px rgba(203,213,225,.45)!important;}
+.gm-frame-emerald{box-shadow:0 0 0 2px #34D399,0 0 10px rgba(52,211,153,.45)!important;}
+.gm-frame-ruby{box-shadow:0 0 0 2px #F87171,0 0 10px rgba(248,113,113,.45)!important;}
+.gm-frame-sapphire{box-shadow:0 0 0 2px #60A5FA,0 0 10px rgba(96,165,250,.45)!important;}
+.gm-frame-violet{box-shadow:0 0 0 2px #A78BFA,0 0 10px rgba(167,139,250,.45)!important;}
+.v8-message.gm-chat-teal{background:linear-gradient(135deg,rgba(25,196,236,.24),rgba(20,150,190,.14))!important;border-color:rgba(25,196,236,.38)!important;}
+.v8-message.gm-chat-rose{background:linear-gradient(135deg,rgba(236,124,160,.24),rgba(200,90,130,.14))!important;border-color:rgba(236,124,160,.38)!important;}
+.v8-message.gm-chat-amber{background:linear-gradient(135deg,rgba(242,181,68,.24),rgba(200,140,40,.14))!important;border-color:rgba(242,181,68,.4)!important;}
+.v8-message.gm-chat-violet{background:linear-gradient(135deg,rgba(167,139,250,.25),rgba(120,90,210,.14))!important;border-color:rgba(167,139,250,.4)!important;}
+.v8-message.gm-chat-emerald{background:linear-gradient(135deg,rgba(52,211,153,.22),rgba(30,160,110,.13))!important;border-color:rgba(52,211,153,.38)!important;}
+.gm-title{color:var(--gm-gold);font-weight:700;}
+.v8-message-sender .gm-title{font-size:8px;margin-inline-start:4px;}
+
+@media (max-width:760px){
+  .gm-item-form{grid-template-columns:1fr;}
+  .gm-img-edit{flex-direction:row;flex-wrap:wrap;align-items:center;}
+  .gm-img-preview{width:110px;}
+  .gm-setting{grid-template-columns:1fr;}
+  .gm-month-form{grid-template-columns:1fr;}
+  .gm-cmp{grid-template-columns:minmax(0,1fr) auto;}
+  .gm-cmp .gm-bar{grid-column:1/-1;}
+  .gm-fest-row{grid-template-columns:auto minmax(0,1fr) 70px;}
+}
+@media (prefers-reduced-motion:reduce){.gm-item{transition:none;}}

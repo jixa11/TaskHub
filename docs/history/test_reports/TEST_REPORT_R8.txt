@@ -1,0 +1,24 @@
+TaskHub 8.0.3 LAN R9 - Test Report
+========================================
+Change: Task report date filter now uses final task approval timestamp (Tasks.completed_at), not registration date (date_recv).
+
+Automated unit/regression tests: 126 total
+Passed: 124
+Failed: 0
+Skipped: 2 (legacy 6.2.1 comparison source is not packaged)
+
+LAN release checks: PASSED
+Python syntax/compile: PASSED
+JavaScript syntax (v7_ui.js, v8_ui.js, service-worker.js): PASSED
+Jalali conversion probe: PASSED
+  2026-07-27 -> 1405/05/05
+  Missing completed_at -> excluded from date-filtered report
+  Persian input 1405/5/5 -> normalized to 1405/05/05
+
+UI/Export verification:
+- Report from/to filters are labeled as task approval date.
+- Grid displays task approval date.
+- Excel/PDF exports display task approval date.
+- Help text explains that report dates are based on final approval.
+
+Limit: The Windows EXE and live production SQL Server were not executed in this Linux environment.
