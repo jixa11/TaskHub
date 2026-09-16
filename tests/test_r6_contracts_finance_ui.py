@@ -19,7 +19,7 @@ class R6AccessControlTests(unittest.TestCase):
             "statements.edit_any_status",
         ):
             self.assertIn(key, rbac)
-        self.assertIn('NON_DELEGABLE = frozenset(("access_control.manage", "system.sql", "system.data_export",', rbac)
+        self.assertIn('NON_DELEGABLE = frozenset(("access_control.manage", "system.data_export",', rbac)
         self.assertIn('"manager": set(ALL_PERMISSION_KEYS) - set(NON_DELEGABLE)', rbac)
         self.assertIn('"planner": set(ALL_PERMISSION_KEYS) - set(NON_DELEGABLE)', rbac)
         self.assertIn('"contracts.manage", "contracts.relink_project"', rbac)

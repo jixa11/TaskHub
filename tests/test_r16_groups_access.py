@@ -36,12 +36,12 @@ class AccessCatalogTests(unittest.TestCase):
         self.assertEqual(where["menu.leave"], "work")
         self.assertEqual(where["leave.approve"], "work")
         self.assertEqual(where["menu.contracts"], "finance")
-        self.assertEqual(where["system.sql"], "system")
+        self.assertEqual(where["system.data_export"], "system")
         self.assertNotIn("menus", set(where.values()))
 
     def test_admin_tools_cannot_be_delegated(self):
         from rbac import NON_DELEGABLE, ROLES, default_permissions
-        for key in ("access_control.manage", "system.sql", "system.data_export",
+        for key in ("access_control.manage", "system.data_export",
                     "system.backup", "system.sessions", "system.autostart"):
             self.assertIn(key, NON_DELEGABLE)
             for role, _ in ROLES:
@@ -102,7 +102,7 @@ class AccessCatalogTests(unittest.TestCase):
 
 class RoleGateTests(unittest.TestCase):
     ADMIN_ONLY = {
-        "api_role_permissions", "api_role_permissions_save", "api_query", "api_run",
+        "api_role_permissions", "api_role_permissions_save",
         "api_active_sessions", "api_session_revoke", "api_data_export",
         "api_v7_storage_stats", "api_v7_backups", "api_v7_backup_run",
         "api_v7_backup_verify", "api_v7_backup_download",

@@ -207,7 +207,6 @@ _LEGACY_PERMISSION_GROUPS = (
         ("system.sessions", "مدیریت نشست‌های فعال"),
         ("system.health", "مشاهده سلامت سیستم"),
         ("system.data_export", "خروجی کامل داده‌ها"),
-        ("system.sql", "اجرای ابزار SQL داخلی"),
         ("access_control.manage", "مدیریت دسترسی نقش‌ها"),
     )),
 )
@@ -312,7 +311,7 @@ _SECTIONS = (
     ("system", "تنظیمات و مدیریت سیستم", (
         "menu.settings", "settings.view", "system.audit", "system.health",
         "system.autostart", "system.backup", "system.sessions", "system.data_export",
-        "system.sql", "access_control.manage")),
+        "access_control.manage")),
 )
 # One line under each section of the access screen.
 GROUP_HINTS = {
@@ -374,8 +373,11 @@ ALL_PERMISSION_KEYS = frozenset(CATALOG)
 # Admin-only tools. They used to be hard-wired to the admin role in the route
 # decorators while the access screen showed them as grantable; from R16 the
 # screen shows them locked and the server refuses them to everyone else.
-NON_DELEGABLE = frozenset(("access_control.manage", "system.sql", "system.data_export",
+NON_DELEGABLE = frozenset(("access_control.manage", "system.data_export",
                            "system.backup", "system.sessions", "system.autostart"))
+# Keys of features that no longer exist. Their stored grants are deleted on
+# startup so the access screen and the database agree.
+RETIRED_PERMISSION_KEYS = ("system.sql",)
 
 # The manager runs a team, not the company ledger. Financial records stay
 # readable - scoped to the team the finance specialist linked them to by
@@ -636,8 +638,6 @@ ENDPOINT_PERMISSIONS = {
     "api_data_export": "system.data_export",
     "api_role_permissions": "access_control.manage",
     "api_role_permissions_save": "access_control.manage",
-    "api_query": "system.sql",
-    "api_run": "system.sql",
     "api_analytics": "dashboard.organization_analytics",
     "api_dashboard_stats": "dashboard.organization_analytics",
     "api_overdue_tasks": "tasks.view",
@@ -817,6 +817,8 @@ def init_rbac_tables(conn):
             cur.execute("""IF NOT EXISTS(SELECT 1 FROM RolePermissions WHERE role=? AND permission_key=?)
                 INSERT INTO RolePermissions(role,permission_key,is_allowed) VALUES(?,?,?)""",
                         role, key, role, key, allowed)
+    for key in RETIRED_PERMISSION_KEYS:
+        cur.execute("DELETE FROM RolePermissions WHERE permission_key=?", key)
 
     # R4 intentionally starts manager and planner with complete operational
     # parity with admin. This migration runs only once so later administrator

@@ -44,7 +44,7 @@ class FinanceOwnsFinancialRecordsTests(unittest.TestCase):
     def test_finance_never_receives_non_financial_administration(self):
         # Broadening finance must not turn it into a second administrator.
         for key in ("access_control.manage", "users.create", "users.delete",
-                    "system.sql", "system.backup", "tasks.delete"):
+                    "system.backup", "tasks.delete"):
             self.assertNotIn(key, self.finance, key)
 
     def test_upgrade_grants_the_new_permissions_once(self):

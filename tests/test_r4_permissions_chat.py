@@ -40,7 +40,7 @@ class R5PermissionMatrixTests(unittest.TestCase):
         self.assertEqual(manager,
                          set(ALL_PERMISSION_KEYS) - set(NON_DELEGABLE) - set(_MANAGER_EXCLUDED))
         # R16: the admin-only tools are locked on the access screen too.
-        self.assertEqual(NON_DELEGABLE, {"access_control.manage", "system.sql", "system.data_export",
+        self.assertEqual(NON_DELEGABLE, {"access_control.manage", "system.data_export",
                                          "system.backup", "system.sessions", "system.autostart"})
         for key in ("contracts.view", "extensions.view", "statements.view",
                     "financial_plan.view", "reports.financial",

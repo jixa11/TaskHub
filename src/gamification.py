@@ -23,6 +23,7 @@ import time
 from decimal import Decimal
 
 from flask import g, jsonify, request
+from api_errors import public_error
 
 import gamification_domain as gd
 from rbac import user_has_permission
@@ -1069,7 +1070,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             return ok(coins=coins, points=points, badges=badges, expired=state["expired_lots"],
                       balance=state["balance"])
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/board", methods=["POST"])
     @require_auth
@@ -1107,7 +1108,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                       seasons=[{"key": k, "label": gd.season_label(k)} for k in seasons],
                       teams=teams, board=board, compare=compare, full=full)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/hall", methods=["POST"])
     @require_auth
@@ -1152,7 +1153,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                       for b in gd.BADGES]
             return ok(badges=badges, hall=hall)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/kudos_give", methods=["POST"])
     @require_auth
@@ -1215,7 +1216,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             notify(to_user, "game", text, task_id)
             return ok(coins=coins)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     # ── routes: shop ────────────────────────────────────────────────────────
     def festival_prices(cur, today):
@@ -1304,7 +1305,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             return ok(data_url="data:%s;base64,%s" % (row["image_mime"] or "image/jpeg", encoded),
                       version=row["image_version"])
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     def create_leave(cur, uid, item, order_id, day, start_time):
         if item.get("leave_mode") == "hours":
@@ -1454,7 +1455,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             audit("game_buy", "خرید آیتم #%s (%s سکه)" % (item_id, price))
             return ok(order_id=order_id, price=price)
         except ValueError as exc:
-            return err(str(exc))
+            return err(public_error(exc))
         except Exception as exc:
             LOG.exception("purchase failed")
             return err("خرید انجام نشد: %s" % exc)
@@ -1482,7 +1483,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                 row["can_cancel"] = row["status"] == "scheduled" and gd.can_change_booking(booked, today)
             return ok(rows=rows)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     def owned_order(cur, uid, order_id):
         return fetch_one(cur, """SELECT o.*,i.leave_mode,i.leave_hours,i.name AS live_name
@@ -1528,9 +1529,9 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                     raise
             return ok()
         except ValueError as exc:
-            return err(str(exc))
+            return err(public_error(exc))
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/shop/order_cancel", methods=["POST"])
     @require_auth
@@ -1565,7 +1566,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                     raise
             return ok(refunded=refunded)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/shop/wishlist_toggle", methods=["POST"])
     @require_auth
@@ -1591,7 +1592,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                     raise
             return ok(wished=wished)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/shop/feed", methods=["POST"])
     @require_auth
@@ -1617,7 +1618,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                 row["link_label"] = link_names.get((row["link_type"], row["link_id"]), "")
             return ok(purchases=purchases, gifts=gifts)
         except Exception as exc:
-            return err(str(exc), purchases=[], gifts=[])
+            return err(public_error(exc), purchases=[], gifts=[])
 
     def link_titles(cur, gifts):
         titles = {}
@@ -1647,7 +1648,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                 out.setdefault(str(row["user_id"]), {})[row["slot"]] = row["value"]
             return ok(map=out)
         except Exception as exc:
-            return err(str(exc), map={})
+            return err(public_error(exc), map={})
 
     @app.route("/api/game/shop/equip", methods=["POST"])
     @require_auth
@@ -1682,7 +1683,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                     raise
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     # ── routes: administration ──────────────────────────────────────────────
     def decode_image(value):
@@ -1722,7 +1723,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             per_day = (float(daily) / supports / 26.0) if supports and daily else None
             return ok(items=items, support_daily_coins=per_day, types=[{"key": k, "label": v} for k, v in gd.ITEM_TYPES])
         except Exception as exc:
-            return err(str(exc), items=[])
+            return err(public_error(exc), items=[])
 
     @app.route("/api/game/admin/item_save", methods=["POST"])
     @require_auth
@@ -1735,7 +1736,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
         try:
             mime, raw = decode_image(data.get("image"))
         except ValueError as exc:
-            return err(str(exc))
+            return err(public_error(exc))
         ident = gd.to_int(data.get("id"))
         try:
             with db_lock:
@@ -1768,7 +1769,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             audit("game_item_save", "آیتم #%s: %s" % (ident, clean["name"]))
             return ok(id=ident)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/admin/item_delete", methods=["POST"])
     @require_auth
@@ -1800,7 +1801,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             audit("game_item_delete", "آیتم #%s %s" % (ident, "بایگانی شد" if archived else "حذف شد"))
             return ok(archived=archived)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/admin/item_toggle", methods=["POST"])
     @require_auth
@@ -1824,7 +1825,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                 return err("آیتم یافت نشد")
             return ok(active=bool(active))
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/admin/festivals", methods=["POST"])
     @require_auth
@@ -1845,7 +1846,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                                  else ("upcoming" if fest["start_date"] > today else "finished"))
             return ok(rows=festivals)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/game/admin/festival_save", methods=["POST"])
     @require_auth
@@ -1910,7 +1911,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             audit("game_festival_save", "جشنواره #%s: %s" % (ident, title))
             return ok(id=ident)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/admin/festival_delete", methods=["POST"])
     @require_auth
@@ -1930,7 +1931,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             audit("game_festival_delete", "جشنواره #%s" % ident)
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/admin/wallet_users", methods=["POST"])
     @require_auth
@@ -1956,7 +1957,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                         row["expiring_soon"] = state["expiring_soon"]
             return ok(rows=rows)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/game/admin/gift", methods=["POST"])
     @require_auth
@@ -2020,7 +2021,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             audit("game_gift", "هدیه «%s» به کاربر #%s — %s" % (item["name"], to_user, reason[:200]))
             return ok(order_id=order_id)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     def fulfilment_rows(cur, statuses):
         marks = ",".join("?" for _ in statuses)
@@ -2067,7 +2068,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                 row["status_label"] = ORDER_LABELS.get(row["status"], row["status"])
             return ok(rows=rows)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/game/admin/deliver_mark", methods=["POST"])
     @require_auth
@@ -2075,7 +2076,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
         try:
             return mark_fulfilled("pending_delivery", "delivered", "تحویل داده شد")
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/admin/payments", methods=["POST"])
     @require_auth
@@ -2089,7 +2090,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                 row["status_label"] = ORDER_LABELS.get(row["status"], row["status"])
             return ok(rows=rows)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/game/admin/payment_mark", methods=["POST"])
     @require_auth
@@ -2097,7 +2098,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
         try:
             return mark_fulfilled("pending_payment", "paid", "پرداخت شد")
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     def hours_text(hours):
         if hours is None:
@@ -2171,7 +2172,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             return ok(month=month, month_label=gd.month_label(month), months=months, rows=people,
                       coins_per_star=setting_int(values, "game_coins_per_star"))
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/game/admin/monthly_save", methods=["POST"])
     @require_auth
@@ -2235,7 +2236,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             audit("game_monthly_rating", "کاربر #%s، %s: %s ستاره" % (uid, month, stars))
             return ok(coins=coins)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/admin/economy", methods=["POST"])
     @require_auth
@@ -2272,7 +2273,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             return ok(rows=people, totals={"issued": int(totals.get("issued") or 0), "spent": spent,
                                            "outstanding": outstanding, "expiring_soon": soon, "expired": expired})
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/game/admin/wallet_adjust", methods=["POST"])
     @require_auth
@@ -2310,7 +2311,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             audit("game_wallet_adjust", "کاربر #%s: %s سکه — %s" % (uid, amount, reason[:200]))
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/admin/settings", methods=["POST"])
     @require_auth
@@ -2321,7 +2322,7 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
                 values = settings(cur)
             return ok(settings={k: values.get(k) for k in SETTING_DEFAULTS})
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/game/admin/settings_save", methods=["POST"])
     @require_auth
@@ -2356,6 +2357,6 @@ def register_game_routes(app, get_conn, db_lock, require_auth, rows_to_list, aud
             audit("game_settings", ", ".join("%s=%s" % kv for kv in sorted(clean.items()))[:500])
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     return {"recompute_task": recompute_task}

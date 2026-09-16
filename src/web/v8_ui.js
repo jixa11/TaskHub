@@ -800,7 +800,7 @@ function v8GroupsHelpHtml(){return '<div class="hlp-card v7-help"><h3>🧩 گر�
   '<li>در «گزارش‌های تیمی»، تب «گروه‌ها» کارهای انجام‌شده، باز و معوق، برگشتی‌ها، درصد سروقت، ساعت کار و سهم هر نفر و هر پروژه را نشان می‌دهد و خروجی Excel و PDF دارد. در «تسک‌ها» و «گزارش‌گیری» هم فیلتر «گروه» هست.</li>'+
   '</ul><h3>🔐 مدیریت دسترسی</h3><ul><li>صفحه دسترسی‌ها بر اساس بخش‌های برنامه مرتب شده است: هر بخش منوی خودش، مشاهده و عملیاتش را کنار هم دارد و زیر هر بخش توضیح کوتاهی آمده است.</li>'+
   '<li>ثبت تعطیلات، ثبت ماموریت و تأیید مرخصی حالا مجوز جدا دارند؛ منوها هم فقط از روی همین صفحه باز یا بسته می‌شوند.</li>'+
-  '<li>ابزارهای SQL، پشتیبان‌گیری، خروجی کامل داده، نشست‌ها، اجرای خودکار و خود صفحه دسترسی‌ها فقط برای مدیر سیستم است و قفل‌شده نمایش داده می‌شود.</li></ul></div>';}
+  '<li>پشتیبان‌گیری، خروجی کامل داده، نشست‌ها، اجرای خودکار و خود صفحه دسترسی‌ها فقط برای مدیر سیستم است و قفل‌شده نمایش داده می‌شود.</li></ul></div>';}
 
 function v8ReportPayload(){var p={kind:V8.currentReport,from_date:v8Iso(g('v8-report-from').value),to_date:v8Iso(g('v8-report-to').value)};if(V8.currentReport==='financial_attribution'){p.city_id=g('v8-fin-city').value||null;p.contract_type_id=g('v8-fin-contract-type').value||null;p.user_id=g('v8-fin-user').value||null;}return p;}
 function v8Iso(v){return v&&typeof v7IsoFromJalali==='function'?v7IsoFromJalali(v):null;}

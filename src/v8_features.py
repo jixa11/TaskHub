@@ -18,6 +18,7 @@ import secrets
 import threading
 
 from flask import g, jsonify, request, send_file
+from api_errors import public_error
 from cryptography.fernet import Fernet
 
 import fa_font
@@ -856,7 +857,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 can_manage_all=(has_company_scope(g.user) and user_has_permission(g.user, "teams.members_manage")),
             )
         except Exception as exc:
-            return err(str(exc), teams=[], project_teams=[])
+            return err(public_error(exc), teams=[], project_teams=[])
 
     @app.route("/api/v8/teams", methods=["POST"])
     @require_auth
@@ -918,9 +919,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                     by_id[int(row["team_id"])]["projects"].append(row)
             return ok(rows=teams)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/v8/team_save", methods=["POST"])
     @require_auth
@@ -965,7 +966,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             audit("v8_team_save", "team #%s" % tid)
             return ok(id=tid)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/team_archive", methods=["POST"])
     @require_auth
@@ -1014,7 +1015,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     # ── R16 groups (گروه) ─────────────────────────────────────────────
     # A group lives inside one team: a lead (سرگروه), members, and the
@@ -1087,7 +1088,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 rows = load_groups(cur, g.user, _int(data.get("team_id")))
             return ok(rows=rows)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/v8/group_save", methods=["POST"])
     @require_auth
@@ -1138,7 +1139,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             audit("v8_group_save", "group #%s" % gid)
             return ok(id=gid)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/group_members_save", methods=["POST"])
     @require_auth
@@ -1177,7 +1178,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             audit("v8_group_members_save", "group #%s: %s members" % (gid, len(wanted)))
             return ok(count=len(wanted))
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/group_projects_save", methods=["POST"])
     @require_auth
@@ -1208,7 +1209,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             audit("v8_group_projects_save", "group #%s: %s projects" % (gid, len(wanted)))
             return ok(count=len(wanted))
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/group_archive", methods=["POST"])
     @require_auth
@@ -1228,7 +1229,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             audit("v8_group_archive", "group #%s" % gid)
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/team_members_save", methods=["POST"])
     @require_auth
@@ -1320,7 +1321,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             audit("v8_team_members", "team #%s members=%s" % (tid, len(clean)))
             return ok(conversation_id=conv_id, needs_key_rotation=True)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/team_types_save", methods=["POST"])
     @require_auth
@@ -1374,7 +1375,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/project_team_save", methods=["POST"])
     @require_auth
@@ -1438,7 +1439,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok(id=ident)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/project_team_archive", methods=["POST"])
     @require_auth
@@ -1469,7 +1470,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/contract_teams", methods=["POST"])
     @require_auth
@@ -1506,7 +1507,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 row["team_remaining"] = None if allocation is None else allocation - approved
             return ok(rows=rows)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/v8/contract_teams_save", methods=["POST"])
     @require_auth
@@ -1630,7 +1631,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             audit("v8_contract_teams", "contract #%s workstreams=%s" % (cid, len(clean)))
             return ok(unallocated_amount=gap)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     def scoped_team_ids(cur, user, data):
         allowed = team_ids(cur, user)
@@ -1878,9 +1879,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                       company_teams_with_target=_int(rollup.get("teams_with_target"), 0),
                       company_unallocated=company_unallocated)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/team_financial_detail", methods=["POST"])
     @require_auth
@@ -2012,9 +2013,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                           "statement_count": len(statements),
                       })
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     def dashboard_report(cur, tids, start, end):
         if not tids:
@@ -2597,9 +2598,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                     return err("نوع گزارش نامعتبر است")
             return ok(kind=kind, from_date=start, to_date=end, **result)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     def _report_pdf(raw, kind, start_date, end_date):
         """Build a scoped Persian PDF from the same rows used by Excel."""
@@ -2749,9 +2750,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                              download_name="TaskHub_v8_%s.xlsx" % kind,
                              mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/config", methods=["POST"])
     @require_auth
@@ -2761,7 +2762,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             return ok(mode=CHAT_MODE, secure_transport=bool(request.is_secure),
                       server_managed=server_chat_mode)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
 
     # ── Organizational chat ─────────────────────────────────────────────
     # The server only stores public keys, wrapped conversation keys and
@@ -2896,11 +2897,11 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                       is_new_device=is_new, key_changed=key_changed,
                       affected_conversations=affected)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except (ValueError, TypeError, json.JSONDecodeError):
             return err("کلید عمومی دستگاه معتبر نیست")
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/device_revoke", methods=["POST"])
     @require_auth
@@ -2926,7 +2927,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/devices", methods=["POST"])
     @require_auth
@@ -2949,9 +2950,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             return ok(rows=rows,
                       pending_count=sum(1 for x in rows if not bool(x.get("is_active"))))
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/v8/chat/device_approval_challenge", methods=["POST"])
     @require_auth
@@ -2986,9 +2987,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok(encrypted_challenge=encrypted, pending_device_id=pending_id)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/device_approve", methods=["POST"])
     @require_auth
@@ -3032,9 +3033,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok(affected_conversations=affected)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/users", methods=["POST"])
     @require_auth
@@ -3107,9 +3108,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                         row["device_count"] = 1
             return ok(rows=rows, chat_mode=CHAT_MODE)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/v8/chat/conversations", methods=["POST"])
     @require_auth
@@ -3174,9 +3175,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             return ok(rows=rows, my_devices=devices, chat_mode=CHAT_MODE,
                       server_device_id=device_id if server_chat_mode else None)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/v8/chat/conversation_create", methods=["POST"])
     @require_auth
@@ -3232,9 +3233,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok(id=cid, existing=False)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/conversation_update", methods=["POST"])
     @require_auth
@@ -3262,9 +3263,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             audit("v8_chat_conversation_update", "conversation #%s" % cid)
             return ok(id=cid, title=title)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/conversation_delete", methods=["POST"])
     @require_auth
@@ -3313,9 +3314,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                   "conversation #%s all=%s" % (cid, int(deleted_for_all)))
             return ok(id=cid, deleted_for_all=deleted_for_all)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/key_rotation_begin", methods=["POST"])
     @require_auth
@@ -3352,9 +3353,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             return ok(key_version=current["key_version"],
                       needs_key_rotation=bool(current["needs_key_rotation"]))
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/key_rotation_claim", methods=["POST"])
     @require_auth
@@ -3394,9 +3395,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                       key_version=current["key_version"],
                       ready=not bool(current["needs_key_rotation"]))
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/member_devices", methods=["POST"])
     @require_auth
@@ -3416,9 +3417,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             return ok(rows=rows, key_version=conversation["key_version"],
                       needs_key_rotation=conversation["needs_key_rotation"])
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/keys_save", methods=["POST"])
     @require_auth
@@ -3474,9 +3475,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok(missing_device_ids=missing, rotation_complete=not missing)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/conversation_members_save", methods=["POST"])
     @require_auth
@@ -3534,9 +3535,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             return ok(key_version=updated["key_version"],
                       needs_key_rotation=not server_chat_mode)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/unread_summary", methods=["POST"])
     @require_auth
@@ -3589,7 +3590,7 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             return ok(total=total, conversations=_int((row or {}).get("conversations"), 0),
                       latest_id=latest_id, latest_title=title, latest_sender=sender)
         except Exception as exc:
-            return err(str(exc), total=0, conversations=0, latest_id=0)
+            return err(public_error(exc), total=0, conversations=0, latest_id=0)
 
     @app.route("/api/v8/chat/messages", methods=["POST"])
     @require_auth
@@ -3672,9 +3673,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                       chat_mode=CHAT_MODE, server_device_id=device_id,
                       has_more=has_more)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc), rows=[])
+            return err(public_error(exc), rows=[])
 
     @app.route("/api/v8/chat/message_send", methods=["POST"])
     @require_auth
@@ -3767,9 +3768,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok(id=mid, duplicate=False, chat_mode=CHAT_MODE)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/read", methods=["POST"])
     @require_auth
@@ -3792,9 +3793,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok()
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/file_upload", methods=["POST"])
     @require_auth
@@ -3867,9 +3868,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
             return ok(id=fid, size_bytes=len(raw), sha256=digest,
                       chat_mode=CHAT_MODE)
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))
 
     @app.route("/api/v8/chat/file_download/<int:file_id>", methods=["GET"])
     @require_auth
@@ -3908,9 +3909,9 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                              download_name="encrypted-%s.bin" % file_id,
                              mimetype="application/octet-stream")
         except PermissionError as exc:
-            return err(str(exc), 403)
+            return err(public_error(exc), 403)
         except Exception as exc:
-            return err(str(exc), 500)
+            return err(public_error(exc), 500)
 
     @app.route("/api/v8/chat/message_delete", methods=["POST"])
     @require_auth
@@ -3932,4 +3933,4 @@ def register_v8_routes(app, get_conn, db_lock, require_auth, require_roles,
                 c.commit()
             return ok()
         except Exception as exc:
-            return err(str(exc))
+            return err(public_error(exc))

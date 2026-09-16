@@ -1563,8 +1563,6 @@ async function api(endpoint, body) {
   }
 }
 
-async function dbQ(sql,params) { return api('/query',{sql,params:params||[]}); }
-async function dbR(sql,params) { return api('/run',  {sql,params:params||[]}); }
 async function win(action)     { return api('/winaction',{action}); }
 
 // ── Boot ───────────────────────────────────────
@@ -4329,76 +4327,10 @@ async function delUser(id,username){
 }
 
 // ── Data ───────────────────────────────────────
-async function loadAll(opts) {
-  var silent = opts && opts.silent;
-  const [cr,pr,catr,tr,hr,ctr] = await Promise.all([
-    dbQ('SELECT id,name,created_at FROM Cities ORDER BY name'),
-    dbQ('SELECT p.id,p.city_id,p.name,c.name as cname,p.created_at FROM Projects p JOIN Cities c ON c.id=p.city_id ORDER BY c.name,p.name'),
-    dbQ('SELECT id,name,description FROM TaskCategories ORDER BY name'),
-    dbQ("SELECT t.id,t.title,t.type,t.status,t.category_id,t.project_id,t.contact_id,t.staff_id,t.date_recv,t.date_delivery,t.description,t.solution,t.test_notes,t.priority,t.created_by,t.started_at,t.submitted_at,t.completed_at,t.work_seconds,t.reject_reason,t.active_actor_id,p.name as pname,c.name as cname,c.id as city_id,emp.display_name as cont_name,emp.phone as cont_phone,emp.phone2 as cont_phone2,sup.display_name as staff_name,cat.name as cat_name,act.display_name as active_actor_name FROM Tasks t LEFT JOIN Projects p ON p.id=t.project_id LEFT JOIN Cities c ON c.id=p.city_id LEFT JOIN Users emp ON emp.id=t.contact_id LEFT JOIN Users sup ON sup.id=t.staff_id LEFT JOIN TaskCategories cat ON cat.id=t.category_id LEFT JOIN Users act ON act.id=t.active_actor_id ORDER BY CASE t.status WHEN 'registered' THEN 0 WHEN 'assigned' THEN 1 WHEN 'returned' THEN 2 WHEN 'doing' THEN 3 WHEN 'paused' THEN 4 WHEN 'pending_approval' THEN 5 ELSE 6 END, t.priority ASC, t.id DESC"),
-    dbQ("SELECT ta.task_id,ta.user_id,u.display_name,u.username FROM TaskAssignees ta JOIN Users u ON u.id=ta.user_id"),
-    // Per-person actual contributed time, from closed work sessions only
-    // (an open/still-running session has no seconds yet - see taskWorkSeconds
-    // for how "still doing right now" time gets added live on top of this).
-    dbQ("SELECT task_id,user_id,SUM(ISNULL(seconds,0)) as total_seconds FROM TaskTimeLog WHERE ended_at IS NOT NULL GROUP BY task_id,user_id"),
-  ]);
-  // If any core query failed (network blip, server hiccup), bail out WITHOUT
-  // touching D.* at all - the previously-loaded data stays exactly as it
-  // was. This matters a lot now that loadAll() also runs unattended via
-  // background polling (see pollForUpdates): silently wiping the visible
-  // task list to empty on a transient failure would be far worse than just
-  // trying again on the next poll.
-  if(!cr.ok || !pr.ok || !catr.ok || !tr.ok || !hr.ok || !ctr.ok){
-    if(!silent) toast('خطا در دریافت اطلاعات از سرور','err');
-    return false;
-  }
-  D.c=cr.rows||[];D.p=pr.rows||[];
-  D.cat=catr.rows||[];D.t=tr.rows||[];
-  // Group helpers by task and attach to each task row.
-  var helpersByTask = {};
-  (hr.rows||[]).forEach(function(h){
-    (helpersByTask[h.task_id] = helpersByTask[h.task_id]||[]).push({id:h.user_id, name:h.display_name||h.username});
-  });
-  D.t.forEach(function(t){ t.helpers = helpersByTask[t.id] || []; });
-  // Group per-person contributed seconds by task and attach to each row.
-  var contribByTask = {};
-  (ctr.rows||[]).forEach(function(c){
-    (contribByTask[c.task_id] = contribByTask[c.task_id]||[]).push({user_id:c.user_id, seconds:c.total_seconds||0});
-  });
-  D.t.forEach(function(t){ t.contributions = contribByTask[t.id] || []; });
-  // Users list (employer/support directory) - needed by everyone for filter dropdowns,
-  // not just admin, since employer/support names now live only on Users.
-  if(CU){
-    try{ var ur=await api('/users',{}); if(ur && ur.ok) D.u=ur.rows||[]; }catch(e){}
-  }
-  // Load this user's weekly schedule when that permission is active.
-  if(CU && can('schedule.view')){
-    try{
-      var sr = await api('/schedule', {staff_id: CU.id});
-      if(sr && sr.ok) D.sched = sr.rows||[];
-    }catch(e){ D.sched=[]; }
-  }
-  // Holidays + this person's own attendance/missions are NOT loaded here on
-  // purpose - loadAll() runs every 20s via the kanban poll, and re-fetching
-  // these (which rarely change within a session) that often would be wasted
-  // load on the server for no benefit. See loadCalendarData() instead,
-  // which is called once at login and then on a much slower timer.
-  // Permission-based task scoping. The server is authoritative; this client
-  // filter mirrors the same scope so a newly-delegated role is not trapped by
-  // an old hard-coded role name.
-  if(CU && !can('tasks.view_all')){
-    if(can('tasks.self_manage') && CU.project_id){
-      D.t = D.t.filter(t=>String(t.project_id)===String(CU.project_id));
-    } else if(can('tasks.work') && !can('tasks.assign') && !can('tasks.approve') && !can('tasks.triage')){
-      D.t = D.t.filter(t=>
-        (t.staff_id!=null && String(t.staff_id)===String(CU.id)) ||
-        t.helpers.some(function(h){return String(h.id)===String(CU.id);})
-      );
-    }
-  }
-  upStats();rAll();upSelects();
-  return true;
-}
+// Placeholders: v7_ui.js replaces these with calls to the dedicated APIs
+// (/core_data, /master_save, /task_save, ...). The declarations only give its
+// strict-mode assignments a binding to replace.
+async function loadAll(){ return false; }
 
 // Active task count, role-aware. For support, "active" means actionable
 // workload only (assigned + doing) - not tasks already sent back/forward
@@ -5412,88 +5344,16 @@ function applyTaskFormRole(t){
 }
 
 // ── Save ───────────────────────────────────────
-async function sCity(){
-  const n=g('vcn').value.trim();if(!n)return toast('نام شهر الزامی است','err');
-  const r=D.eid?await dbR('UPDATE Cities SET name=? WHERE id=?',[n,D.eid]):await dbR('INSERT INTO Cities(name)VALUES(?)',[n]);
-  if(!r.ok)return toast('خطا: '+r.error,'err');
-  closeM('mc');await loadAll();toast(D.eid?'شهر ویرایش شد':'شهر اضافه شد','ok');
-}
-async function sProj(){
-  const n=g('vpn').value.trim(),cid=parseInt(g('vpc').value);
-  if(!n||!cid)return toast('نام و شهر الزامی است','err');
-  const r=D.eid?await dbR('UPDATE Projects SET name=?,city_id=? WHERE id=?',[n,cid,D.eid]):await dbR('INSERT INTO Projects(city_id,name)VALUES(?,?)',[cid,n]);
-  if(!r.ok)return toast('خطا: '+r.error,'err');
-  // Notes are only present (and only saved) when editing an existing
-  // project AND the notes section is actually visible (meaning this user
-  // was authorized to load it in the first place).
-  if(D.eid && can('project_notes.manage') && g('vpnotes-wrap').style.display!=='none' && g('vpnotes').style.display!=='none'){
-    await api('/project_notes_save',{project_id:D.eid,notes:g('vpnotes').value,actor_id:CU.id,actor_role:CU.role});
-  }
-  closeM('mp');await loadAll();toast(D.eid?'پروژه ویرایش شد':'پروژه اضافه شد','ok');
-}
-async function sCat(){
-  const nm=g('vcatn').value.trim();if(!nm)return toast('نام الزامی است','err');
-  const d=g('vcatd').value.trim();
-  const r=D.eid?await dbR('UPDATE TaskCategories SET name=?,description=? WHERE id=?',[nm,d,D.eid]):await dbR('INSERT INTO TaskCategories(name,description)VALUES(?,?)',[nm,d]);
-  if(!r.ok)return toast('خطا: '+r.error,'err');
-  closeM('mcat');await loadAll();toast(D.eid?'دسته ویرایش شد':'دسته اضافه شد','ok');
-}
-async function sTask(){
-  const title=g('vtitle').value.trim();
-  let pid=parseInt(g('vtproj').value)||null;
-  if(!title||!pid)return toast('عنوان و پروژه الزامی است','err');
-  let type=g('vtype').value,status=g('vstatus').value;
-  const cat=g('vcat').value||null;
-  let cid=g('vtcont').value||null,sid=g('vtstaff').value||null;
-  const recv=g('vtrecv').value.trim()||null,del=g('vtdel').value.trim()||null;
-  const desc=g('vtdesc').value.trim()||null,sol=g('vtsol').value.trim()||null;
-  let pri=parseInt(g('vpri').value)||2;
-  // Employer restrictions: own project only, no staff, status forced registered on create
-  if(CU && can('tasks.self_manage')&&!can('tasks.edit')){
-    pid=CU.project_id; sid=null;
-    if(!D.eid){ status='registered'; cid=CU.id; } // employer IS the requester now
-  }
-  // Admin creating a brand-new task: if they already picked a support person
-  // right there in the form, that IS the assignment decision - send it
-  // straight to 'assigned' instead of dropping it in the triage queue and
-  // forcing them to go re-pick the same person again via a separate step.
-  if(CU && can('tasks.assign') && !D.eid && sid){
-    status = 'assigned';
-  }
-  // Soft duplicate check - only when creating a NEW task (not editing). Looks
-  // for another still-open task with the exact same title in the same
-  // project among what's already loaded client-side; this is a human
-  // nudge, not a hard block, since two genuinely separate issues can
-  // legitimately share a title.
-  if(!D.eid){
-    var normTitle = title.replace(/\s+/g,' ').toLowerCase();
-    var dup = (D.t||[]).find(function(t){
-      return t.project_id===pid && t.status!=='done' && t.status!=='rejected' &&
-        (t.title||'').replace(/\s+/g,' ').toLowerCase()===normTitle;
-    });
-    if(dup){
-      var proceed = confirm('⚠ تسکی با همین عنوان از قبل در این پروژه ثبت شده و هنوز باز است (وضعیت: '+(SL2[dup.status]||dup.status)+').\nمطمئنید می‌خواهید دوباره ثبت کنید؟');
-      if(!proceed) return;
-    }
-  }
-  var saveBtn = g('vtsavebtn');
-  if(saveBtn){ if(saveBtn.disabled) return; saveBtn.disabled = true; saveBtn.textContent = 'در حال ذخیره...'; }
-  try{
-    const r=D.eid
-      ?await dbR('UPDATE Tasks SET title=?,type=?,status=?,category_id=?,project_id=?,contact_id=?,staff_id=?,date_recv=?,date_delivery=?,description=?,solution=?,priority=? WHERE id=?',[title,type,status,cat,pid,cid,sid,recv,del,desc,sol,pri,D.eid])
-      :await dbR('INSERT INTO Tasks(title,type,status,category_id,project_id,contact_id,staff_id,date_recv,date_delivery,description,solution,priority,created_by)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)',[title,type,status,cat,pid,cid,sid,recv,del,desc,sol,pri,CU?CU.id:null]);
-    if(!r.ok){ toast('خطا: '+r.error,'err'); return; }
-    closeM('mt');await loadAll();renderKanban();toast(D.eid?'تسک ویرایش شد':'تسک اضافه شد','ok');
-  } finally {
-    if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = '✔ ذخیره'; }
-  }
-}
+async function sCity(){}
+async function sProj(){}
+async function sCat(){}
+async function sTask(){}
 
 // ── Delete ─────────────────────────────────────
-async function dCity(id,n){if(!confirm('حذف شهر «'+n+'»؟'))return;const r=await dbR('DELETE FROM Cities WHERE id=?',[id]);if(!r.ok)return toast('خطا: '+r.error,'err');await loadAll();toast('شهر حذف شد','ok');}
-async function dProj(id,n){if(!confirm('حذف پروژه «'+n+'»؟'))return;const r=await dbR('DELETE FROM Projects WHERE id=?',[id]);if(!r.ok)return toast('خطا: '+r.error,'err');await loadAll();toast('پروژه حذف شد','ok');}
-async function dCat(id,n){if(!confirm('حذف دسته «'+n+'»؟'))return;const r=await dbR('DELETE FROM TaskCategories WHERE id=?',[id]);if(!r.ok)return toast('خطا: '+r.error,'err');await loadAll();toast('دسته حذف شد','ok');}
-async function dTask(id,n){const t=D.t.find(x=>x.id===id);if(t&&!canDeleteTask(t)){toast('شما اجازه حذف این تسک را ندارید','err');return;}if(!confirm('حذف تسک «'+n+'»؟'))return;const r=await dbR('DELETE FROM Tasks WHERE id=?',[id]);if(!r.ok)return toast('خطا: '+r.error,'err');await loadAll();toast('تسک حذف شد','ok');}
+async function dCity(){}
+async function dProj(){}
+async function dCat(){}
+async function dTask(){}
 
 // ── Report ─────────────────────────────────────
 // The task report period is based on the final task approval timestamp

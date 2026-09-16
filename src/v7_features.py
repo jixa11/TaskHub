@@ -18,6 +18,7 @@ import os
 import tempfile
 
 from flask import after_this_request, g, jsonify, request, send_file
+from api_errors import public_error
 import fa_font
 from v7_domain import contract_remaining, expiry_level, validate_monthly_allocation
 from rbac import user_has_permission
@@ -623,7 +624,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     entity_type, entity_id, action,
                     json.dumps(_jsonable(before), ensure_ascii=False) if before is not None else None,
                     json.dumps(_jsonable(after), ensure_ascii=False) if after is not None else None,
-                    g.user['id'], (request.headers.get('X-Forwarded-For') or request.remote_addr or '')[:45])
+                    g.user['id'], (request.remote_addr or '')[:45])
 
     def _team_allowed(cur, user, team_id):
         if not team_id:
@@ -884,7 +885,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                        categories=categories, tasks=tasks, helpers=helpers,
                        contributions=contributions)
         except Exception as exc:
-            return _err(str(exc), rows=[])
+            return _err(public_error(exc), rows=[])
 
     @app.route('/api/master_save', methods=['POST'])
     @require_auth
@@ -951,7 +952,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 'UNIQUE' in message.upper() or 'duplicate' in message.lower()
             ):
                 return _err('این شهر از قبل ثبت شده است؛ شهرها بین همه تیم‌ها مشترک هستند')
-            return _err(message)
+            return _err(public_error(exc))
 
     @app.route('/api/master_delete', methods=['POST'])
     @require_auth
@@ -972,7 +973,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
             audit('master_delete', '%s #%s' % (kind, ident))
             return _ok()
         except Exception as exc:
-            return _err(str(exc))
+            return _err(public_error(exc))
 
     @app.route('/api/task_contract_options', methods=['POST'])
     @require_auth
@@ -1010,7 +1011,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 rows = rows_to_list(cur)
             return _ok(rows=rows)
         except Exception as exc:
-            return _err(str(exc), rows=[])
+            return _err(public_error(exc), rows=[])
 
     @app.route('/api/task_save', methods=['POST'])
     @require_auth
@@ -1151,7 +1152,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 _entity_audit(cur, 'task', ident, 'update' if old else 'create', old, new); c.commit()
             return _ok(id=ident)
         except Exception as exc:
-            return _err(str(exc))
+            return _err(public_error(exc))
 
     @app.route('/api/task_delete', methods=['POST'])
     @require_auth
@@ -1175,7 +1176,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 cur.execute("DELETE FROM Tasks WHERE id=?", ident); _entity_audit(cur, 'task', ident, 'delete', old, None); c.commit()
             return _ok()
         except Exception as exc:
-            return _err(str(exc))
+            return _err(public_error(exc))
 
     def _effective_end_expr():
         # Never let an erroneous historical addendum shorten the base term.
@@ -1314,7 +1315,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                                    _int((request.get_json() or {}).get('id')),
                                    'contracts.archive')
         except Exception as exc:
-            return _err(str(exc))
+            return _err(public_error(exc))
 
     @app.route('/api/extension_restore', methods=['POST'])
     @require_auth
@@ -1324,7 +1325,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                                    _int((request.get_json() or {}).get('id')),
                                    'extensions.archive')
         except Exception as exc:
-            return _err(str(exc))
+            return _err(public_error(exc))
 
     @app.route('/api/statement_restore', methods=['POST'])
     @require_auth
@@ -1334,7 +1335,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                                    _int((request.get_json() or {}).get('id')),
                                    'statements.archive')
         except Exception as exc:
-            return _err(str(exc))
+            return _err(public_error(exc))
 
     @app.route('/api/contracts', methods=['POST'])
     @require_auth
@@ -1386,7 +1387,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 row['financial_progress_percent'] = _pct(approved, effective) if effective > 0 else 0
             return _ok(rows=rows, red_days=red, yellow_days=yellow, archived=archived)
         except Exception as exc:
-            return _err(str(exc), rows=[])
+            return _err(public_error(exc), rows=[])
 
     @app.route('/api/contract_lookups', methods=['POST'])
     @require_auth
@@ -1397,7 +1398,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 for key, table in [('types','ContractTypes'),('statuses','ContractStatuses'),('categories','ContractCategories'),('extension_types','ContractExtensionTypes'),('statement_types','ContractStatementTypes')]:
                     cur.execute("SELECT id,name FROM %s ORDER BY id" % table); result[key] = rows_to_list(cur)
             return _ok(**result)
-        except Exception as exc: return _err(str(exc))
+        except Exception as exc: return _err(public_error(exc))
 
     @app.route('/api/contract_save', methods=['POST'])
     @require_auth
@@ -1644,7 +1645,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                                    'destination_project_team_id': clean[0][0]})
                 _entity_audit(cur, 'contract', ident, 'update' if old else 'create', old, new); c.commit()
             return _ok(id=ident)
-        except Exception as exc: return _err(str(exc))
+        except Exception as exc: return _err(public_error(exc))
 
     @app.route('/api/contract_rating', methods=['POST'])
     @require_auth
@@ -1662,7 +1663,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 new = _one(cur, "SELECT payer_rating,payer_note,payer_locked FROM Contracts WHERE id=?", ident)
                 _entity_audit(cur, 'contract', ident, 'payer_rating', old, new); c.commit()
             return _ok()
-        except Exception as exc: return _err(str(exc))
+        except Exception as exc: return _err(public_error(exc))
 
     @app.route('/api/contract_archive', methods=['POST'])
     @require_auth
@@ -1684,7 +1685,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                             g.user['id'],ident)
                 _entity_audit(cur,'contract',ident,'archive',old,None);c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/extensions', methods=['POST'])
     @require_auth
@@ -1719,7 +1720,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     LEFT JOIN Users u ON u.id=e.approved_by"""+where+" ORDER BY ci.name,p.name,co.title,e.extension_date DESC,e.id DESC",params)
                 rows=rows_to_list(cur)
             return _ok(rows=rows, archived=archived)
-        except Exception as exc:return _err(str(exc),rows=[])
+        except Exception as exc:return _err(public_error(exc),rows=[])
 
     @app.route('/api/extension_save', methods=['POST'])
     @require_auth
@@ -1751,7 +1752,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     ident=cur.fetchone()[0]
                 new=_one(cur,"SELECT * FROM ContractExtensions WHERE id=?",ident);_entity_audit(cur,'extension',ident,'update' if old else 'create',old,new);c.commit()
             return _ok(id=ident)
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/extension_submit', methods=['POST'])
     @require_auth
@@ -1766,7 +1767,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 cur.execute("UPDATE ContractExtensions SET internal_status='pending',updated_by=?,updated_at=GETDATE() WHERE id=?",g.user['id'],ident)
                 _entity_audit(cur,'extension',ident,'submit',old,{'internal_status':'pending'});c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/extension_decide', methods=['POST'])
     @require_auth
@@ -1816,7 +1817,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     decision,(d.get('note') or '').strip() or None,g.user['id'],delta,g.user['id'],ident)
                 new=_one(cur,"SELECT * FROM ContractExtensions WHERE id=?",ident);_entity_audit(cur,'extension',ident,'manager_'+decision,old,new);c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/extension_archive', methods=['POST'])
     @require_auth
@@ -1874,7 +1875,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 for item in rows:
                     item['team_allocations']=allocations.get(int(item['id']),[])
             return _ok(rows=rows, archived=archived)
-        except Exception as exc:return _err(str(exc),rows=[])
+        except Exception as exc:return _err(public_error(exc),rows=[])
 
     @app.route('/api/statement_save', methods=['POST'])
     @require_auth
@@ -2012,7 +2013,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                                 ident,team_id,share,g.user['id'])
                 new=_one(cur,"SELECT * FROM ContractStatements WHERE id=?",ident);_entity_audit(cur,'statement',ident,'update' if old else 'create',old,new);c.commit()
             return _ok(id=ident)
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/statement_teams_save', methods=['POST'])
     @require_auth
@@ -2091,7 +2092,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                                         for x in clean]})
                 c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/statement_submit', methods=['POST'])
     @require_auth
@@ -2106,7 +2107,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 cur.execute("UPDATE ContractStatements SET business_status='pending_internal',updated_by=?,updated_at=GETDATE() WHERE id=?",g.user['id'],ident)
                 _entity_audit(cur,'statement',ident,'submit',old,{'business_status':'pending_internal'});c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/statement_internal_decide', methods=['POST'])
     @require_auth
@@ -2125,7 +2126,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                             target,g.user['id'],(d.get('note') or '').strip() or None,g.user['id'],ident)
                 new=_one(cur,"SELECT * FROM ContractStatements WHERE id=?",ident);_entity_audit(cur,'statement',ident,'manager_'+decision,old,new);c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/statement_mark_sent', methods=['POST'])
     @require_auth
@@ -2139,7 +2140,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 cur.execute("UPDATE ContractStatements SET business_status='sent',sent_at=GETDATE(),updated_by=?,updated_at=GETDATE() WHERE id=?",g.user['id'],ident)
                 _entity_audit(cur,'statement',ident,'sent',old,{'business_status':'sent'});c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/statement_employer_decide', methods=['POST'])
     @require_auth
@@ -2182,7 +2183,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     target,confirmed_without_vat,confirmed_vat,confirmed_price,g.user['id'],(d.get('note') or '').strip() or None,g.user['id'],ident)
                 new=_one(cur,"SELECT * FROM ContractStatements WHERE id=?",ident);_entity_audit(cur,'statement',ident,'employer_'+decision,old,new);c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/statement_revision', methods=['POST'])
     @require_auth
@@ -2207,7 +2208,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 cur.execute("UPDATE ContractStatements SET is_current=0,business_status='revised',updated_by=?,updated_at=GETDATE() WHERE id=?",g.user['id'],source)
                 _entity_audit(cur,'statement',source,'superseded',old,{'new_statement_id':new_id});c.commit()
             return _ok(id=new_id)
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/statement_archive', methods=['POST'])
     @require_auth
@@ -2536,9 +2537,9 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 )
             return _ok(**data)
         except ValueError as exc:
-            return _err(str(exc))
+            return _err(public_error(exc))
         except Exception as exc:
-            return _err(str(exc), types=[], projects=[], contracts=[], statements=[])
+            return _err(public_error(exc), types=[], projects=[], contracts=[], statements=[])
 
     def _parse_datetime(value):
         if not value:
@@ -2661,9 +2662,9 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 data = _work_report_data(cur, request.get_json() or {}, g.user)
             return _ok(**data)
         except ValueError as exc:
-            return _err(str(exc))
+            return _err(public_error(exc))
         except Exception as exc:
-            return _err(str(exc), rows=[], tasks=[])
+            return _err(public_error(exc), rows=[], tasks=[])
 
     @app.route('/api/dashboard_reports', methods=['POST'])
     @require_auth
@@ -2785,7 +2786,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                        filters={'from_date': start, 'to_date': end,
                                 'from_jalali': start_fa, 'to_jalali': end_fa})
         except Exception as exc:
-            return _err(str(exc))
+            return _err(public_error(exc))
 
     def _archive_entity(table, entity):
         try:
@@ -2796,7 +2797,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 cur.execute("UPDATE %s SET is_active=0,updated_by=?,updated_at=GETDATE() WHERE id=?"%table,g.user['id'],ident)
                 _entity_audit(cur,entity,ident,'archive',old,None);c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/financial_plan', methods=['POST'])
     @require_auth
@@ -2866,7 +2867,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     actual_share_sql,
                     actual_share_params+actual_params);actuals=rows_to_list(cur)
             return _ok(plan=plan,periods=periods,planned=planned,actuals=actuals,year=year)
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/financial_dashboard', methods=['POST'])
     @require_auth
@@ -2979,7 +2980,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                        sent_amount=sent_amount, approved_amount=approved_amount,
                        sent_count=sent_count, approved_count=approved_count)
         except Exception as exc:
-            return _err(str(exc), plan=None)
+            return _err(public_error(exc), plan=None)
 
     @app.route('/api/financial_plan_save' , methods=['POST'])
     @require_auth
@@ -3006,7 +3007,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     for m in range(1,13):cur.execute("INSERT INTO FinancialPlanPeriods(plan_id,month_no,target_amount) VALUES(?,?,0)",pid,m)
                 _entity_audit(cur,'financial_plan',pid,'update' if old else 'create',old,{'approved_target':str(target),'reason':reason});c.commit()
             return _ok(id=pid)
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/financial_periods_save', methods=['POST'])
     @require_auth
@@ -3027,7 +3028,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
             with db_lock:
                 c=get_conn();cur=c.cursor();cur.execute("UPDATE FinancialPlanPeriods SET is_locked=?,updated_by=?,updated_at=GETDATE() WHERE plan_id=? AND month_no=?",locked,g.user['id'],pid,month);c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/planned_statement_save', methods=['POST'])
     @require_auth
@@ -3062,7 +3063,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     cur.execute("INSERT INTO PlannedStatements(plan_id,contract_id,month_no,planned_date,planned_date_fa,statement_type_id,planned_amount,title,note,status,project_team_id,created_by) OUTPUT INSERTED.id VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",vals);ident=cur.fetchone()[0]
                 _entity_audit(cur,'planned_statement',ident,'update' if old else 'create',old,d);c.commit()
             return _ok(id=ident)
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/planned_statement_archive', methods=['POST'])
     @require_auth
@@ -3077,7 +3078,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 cur.execute("UPDATE PlannedStatements SET is_active=0,updated_by=?,updated_at=GETDATE() WHERE id=?",g.user['id'],ident)
                 _entity_audit(cur,'planned_statement',ident,'archive',old,None);c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/planned_statement_link_tasks', methods=['POST'])
     @require_auth
@@ -3105,7 +3106,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                                 pid,ps['contract_id'],ps.get('project_team_id'),tid)
                 _entity_audit(cur,'planned_statement',pid,'link_tasks',None,{'task_ids':task_ids});c.commit()
             return _ok(count=len(task_ids))
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/contract_recommendations', methods=['POST'])
     @require_auth
@@ -3201,7 +3202,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
             recommendations.sort(key=lambda x:(-(x.get('payer_rating') or 0),-(x.get('ready_task_count') or 0),x.get('days_to_end') if x.get('days_to_end') is not None else 10**9,bool(x.get('requires_team_allocation')),-float(x.get('remaining_price') or 0)))
             alerts.sort(key=lambda x:(x.get('days_to_end') if x.get('days_to_end') is not None else 10**9,bool(x.get('requires_team_allocation')),-float(x.get('remaining_price') or 0)))
             return _ok(rows=recommendations[:30],critical_alerts=alerts[:30])
-        except Exception as exc:return _err(str(exc),rows=[],critical_alerts=[])
+        except Exception as exc:return _err(public_error(exc),rows=[],critical_alerts=[])
 
     # ── Attachments ────────────────────────────────────────────────
     storage_dir=os.path.join(base_dir,'data','files');thumb_dir=os.path.join(storage_dir,'thumbs')
@@ -3252,7 +3253,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     FROM Attachments a JOIN FileBlobs b ON b.id=a.blob_id WHERE a.entity_type=? AND a.entity_id=? AND a.is_active=1
                     ORDER BY a.sort_order,a.id""",et,eid);rows=rows_to_list(cur)
             return _ok(rows=rows)
-        except Exception as exc:return _err(str(exc),rows=[])
+        except Exception as exc:return _err(public_error(exc),rows=[])
 
     @app.route('/api/attachment_upload', methods=['POST'])
     @require_auth
@@ -3300,7 +3301,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 cur.execute("INSERT INTO Attachments(entity_type,entity_id,blob_id,original_name,caption,version_no,uploaded_by) OUTPUT INSERTED.id VALUES(?,?,?,?,?,?,?)",et,eid,bid,os.path.basename(f.filename or 'file')[:260],caption,ver,g.user['id']);aid=cur.fetchone()[0]
                 _entity_audit(cur,'attachment',aid,'upload',None,{'entity_type':et,'entity_id':eid,'sha256':sha});c.commit()
             return _ok(id=aid,size=len(raw),deduplicated=bool(blob))
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/attachment_download/<int:attachment_id>', methods=['GET'])
     @require_auth
@@ -3316,7 +3317,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
             name=row.get('thumbnail_name') if thumb and row.get('thumbnail_name') else row.get('storage_name');path=os.path.join(thumb_dir if thumb and row.get('thumbnail_name') else storage_dir,name)
             if not os.path.isfile(path):return _err('فایل فیزیکی یافت نشد',404)
             return send_file(path,mimetype='image/webp' if thumb else row.get('mime_type'),as_attachment=not thumb,download_name=row.get('original_name'))
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/attachment_archive', methods=['POST'])
     @require_auth
@@ -3329,7 +3330,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 if not _can_access_entity(cur,row['entity_type'],row['entity_id'],'attachments.archive'):return _err('اجازه بایگانی فایل ندارید',403)
                 cur.execute("UPDATE Attachments SET is_active=0,deleted_by=?,deleted_at=GETDATE() WHERE id=?",g.user['id'],aid);_entity_audit(cur,'attachment',aid,'archive',row,None);c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/attachment_update', methods=['POST'])
     @require_auth
@@ -3345,7 +3346,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 cur.execute("UPDATE Attachments SET caption=?,sort_order=? WHERE id=?",(caption or '').strip() or None,sort_order,aid)
                 _entity_audit(cur,'attachment',aid,'metadata_update',row,{'caption':caption,'sort_order':sort_order});c.commit()
             return _ok()
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/storage_stats', methods=['POST'])
     @require_roles('admin')
@@ -3363,7 +3364,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                     _int(stats.get('encrypted_chat_bytes'),0)
                 )
             return _ok(**stats)
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/backups', methods=['POST'])
     @require_roles('admin')
@@ -3386,7 +3387,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                              'kind':info.get('kind'),'created_at':info.get('created_at'),
                              'parent_full':info.get('parent_full')})
             return _ok(rows=rows)
-        except Exception as exc:return _err(str(exc),rows=[])
+        except Exception as exc:return _err(public_error(exc),rows=[])
 
     @app.route('/api/backup_run', methods=['POST'])
     @require_roles('admin')
@@ -3398,7 +3399,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
             if not path:return _err('ساخت پشتیبان ناموفق بود؛ فایل backup.log را بررسی کنید')
             audit('backup_create',os.path.basename(path))
             return _ok(name=os.path.basename(path))
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/backup_verify', methods=['POST'])
     @require_roles('admin')
@@ -3411,7 +3412,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
             ok,errors=backup_module.verify_archive(path)
             audit('backup_verify','%s: %s'%(name,'ok' if ok else 'failed'))
             return _ok(valid=ok,errors=errors)
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/backup_download/<path:filename>', methods=['GET'])
     @require_roles('admin')
@@ -3424,7 +3425,7 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
             if not os.path.isfile(path):return _err('فایل یافت نشد',404)
             audit('backup_download',name)
             return send_file(path,as_attachment=True,download_name=name,mimetype='application/zip')
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))
 
     @app.route('/api/v7_export', methods=['POST'])
     @require_auth
@@ -3685,4 +3686,4 @@ def register_v7_routes(app, get_conn, db_lock, require_auth, require_roles,
                 except Exception:pass
                 return response
             return send_file(path,mimetype=mime,as_attachment=True,download_name=name)
-        except Exception as exc:return _err(str(exc))
+        except Exception as exc:return _err(public_error(exc))

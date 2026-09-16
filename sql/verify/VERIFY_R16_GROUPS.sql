@@ -78,6 +78,6 @@ GO
 SELECT COUNT(*) AS delegated_admin_tools
 FROM RolePermissions
 WHERE role<>N'admin' AND is_allowed=1
-  AND permission_key IN (N'access_control.manage', N'system.sql', N'system.data_export',
+  AND permission_key IN (N'access_control.manage', N'system.data_export',
                          N'system.backup', N'system.sessions', N'system.autostart');
 GO

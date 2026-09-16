@@ -171,7 +171,6 @@ for marker in (
     "function defaultLandingPage()",
     "function canAny(value)",
     'data-permission-any="tasks.create,tasks.self_manage,tasks.create_for_group"',
-    "Permission-based task scoping",
     "if(can('tasks.assign'))actionButtons.push",
     "v 1.0.0",
 ):
@@ -349,7 +348,7 @@ team_scope_src = (SRC / "team_scope.py").read_text(encoding="utf-8")
 v7_src = (SRC / "v7_features.py").read_text(encoding="utf-8")
 for marker in ('"menu.groups"', '"groups.projects_manage"', '"reports.groups"', '"holidays.manage"',
                '"missions.manage"', '"leave.approve"', "GROUP_HINTS",
-               "r16_holiday_mission_leave_split_v1", '"system.sql", "system.data_export"'):
+               "r16_holiday_mission_leave_split_v1", '"system.data_export"'):
     if marker not in rbac:
         fail("missing R16 access marker: " + marker)
 for marker in ("CREATE TABLE WorkGroups(", "CREATE TABLE WorkGroupMembers(", "CREATE TABLE WorkGroupProjects(",

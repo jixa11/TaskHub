@@ -2,9 +2,10 @@
 TaskHub - Flask + pywebview (native Windows window)
 Flask server on localhost handles all DB calls. UI in native WebView2 window.
 """
-import sys, os, json, base64, re, threading, traceback, secrets, hashlib, tempfile, time, datetime
+import sys, os, json, base64, re, threading, traceback, secrets, hashlib, hmac, tempfile, time, datetime
 import pyodbc
 from flask import Flask, request, jsonify, send_file, g as flask_g
+from api_errors import public_error
 from config import (APP_VERSION, WEB_DIR, PORT, HOST, SESSION_HOURS, INITIAL_ADMIN_PASSWORD,
                     SSL_CERT_FILE, SSL_KEY_FILE, SSL_ENABLED, URL_SCHEME, INTERNAL_SCHEME,
                     PUBLIC_HOST, REVERSE_PROXY, SERVER_ENGINE, CHAT_MODE,
@@ -145,7 +146,7 @@ def _verify_pw(password, stored):
     try:
         salt, h = stored.split('$', 1)
         dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
-        return dk.hex() == h
+        return hmac.compare_digest(dk.hex(), h)
     except Exception:
         return False
 
@@ -501,7 +502,7 @@ def api_connect():
         return jsonify({'ok': True})
     except Exception as e:
         log.error(f'DB connect failed: {e}')
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 def _build_user_dict(row):
     """row: id,username,role,display_name,project_id,phone,position (in that order)."""
@@ -549,6 +550,15 @@ def _build_user_dict(row):
                 user['city_id'] = pr[0]
     return user
 
+def _client_ip():
+    """Address of the connecting client.
+
+    X-Forwarded-For is written by the client, so trusting it let any request
+    pick a fresh address to escape the login lockout and forge the address
+    stored in sessions and the audit log. Behind IIS, ProxyFix already puts
+    the proxy's forwarded address into remote_addr."""
+    return request.remote_addr or ''
+
 def _create_session(user_id):
     token = secrets.token_hex(32)
     with _db_lock:
@@ -560,7 +570,7 @@ def _create_session(user_id):
         cur.execute("""INSERT INTO Sessions(token,user_id,expires_at,last_seen,ip_address,user_agent)
             VALUES(?,?,DATEADD(hour,?,GETDATE()),GETDATE(),?,?)""",
             token, user_id, SESSION_HOURS,
-            (request.headers.get('X-Forwarded-For') or request.remote_addr or '')[:45],
+            _client_ip()[:45],
             (request.headers.get('User-Agent') or '')[:300])
         c.commit()
     return token
@@ -637,7 +647,7 @@ def _audit(action, detail=None, user=None):
         u = user if user is not None else _current_user()
         uid = u['id'] if u else None
         uname = u['username'] if u else None
-        ip = request.headers.get('X-Forwarded-For') or request.remote_addr or None
+        ip = _client_ip() or None
         with _db_lock:
             c = get_conn(); cur = c.cursor()
             cur.execute("INSERT INTO AuditLog(user_id,username,action,detail,ip) VALUES(?,?,?,?,?)",
@@ -844,7 +854,7 @@ def api_login():
         data = request.get_json()
         username = (data.get('username') or '').strip()
         password = data.get('password') or ''
-        _ip = request.headers.get('X-Forwarded-For') or request.remote_addr or 'unknown'
+        _ip = _client_ip() or 'unknown'
         if _login_throttled(_ip):
             _audit('login_locked', 'تلاش‌های ناموفق متعدد از %s' % _ip, user={'id': None, 'username': username})
             return jsonify({'ok': False, 'error': 'تلاش‌های ناموفق زیاد. لطفاً چند دقیقه صبر کنید.'})
@@ -852,14 +862,13 @@ def api_login():
             c = get_conn(); cur = c.cursor()
             cur.execute("SELECT id,username,password_hash,role,display_name,project_id,phone,position,is_active FROM Users WHERE username=?", username)
             row = cur.fetchone()
-        if not row:
+        if not row or not _verify_pw(password, row[2]):
             _login_note_fail(_ip)
             return jsonify({'ok': False, 'error': 'نام کاربری یا رمز عبور اشتباه است'})
+        # Checked only after the password, so the reply cannot reveal which
+        # usernames exist and are disabled to someone without the password.
         if not row[8]:
             return jsonify({'ok': False, 'error': 'این حساب غیرفعال شده است'})
-        if not _verify_pw(password, row[2]):
-            _login_note_fail(_ip)
-            return jsonify({'ok': False, 'error': 'نام کاربری یا رمز عبور اشتباه است'})
         _login_fails.pop(_ip, None)  # success clears the counter
         user = _build_user_dict([row[0], row[1], row[3], row[4], row[5], row[6], row[7]])
         token = _create_session(row[0])
@@ -876,7 +885,7 @@ def api_login():
             pass  # attendance is best-effort and must never block login
         return jsonify({'ok': True, 'user': user, 'token': token})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/session', methods=['POST'])
 def api_session():
@@ -905,7 +914,7 @@ def api_session():
         user = _build_user_dict([row[0], row[1], row[2], row[3], row[4], row[5], row[6]])
         return jsonify({'ok': True, 'user': user})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/logout', methods=['POST'])
 def api_logout():
@@ -928,7 +937,7 @@ def api_logout():
                     pass
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 def _sync_user_primary_team(cur, user_id, role, team_id, actor_id):
     """Set the selected primary team without deleting intentional secondary memberships."""
@@ -1013,7 +1022,7 @@ def api_users_list():
             rows = rows_to_list(cur)
         return jsonify({'ok': True, 'rows': rows, 'company_scope': has_company_scope(flask_g.user)})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 
 @flask_app.route('/api/phonebook', methods=['POST'])
@@ -1071,7 +1080,7 @@ def api_phonebook():
             'company_scope': user_has_permission(actor, 'phonebook.view_all'),
         })
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 
 @flask_app.route('/api/user_save', methods=['POST'])
@@ -1173,6 +1182,8 @@ def api_user_save():
         msg = str(e)
         if 'UNIQUE' in msg or 'duplicate' in msg.lower():
             msg = 'این نام کاربری قبلاً ثبت شده است یا کاربر بیش از یک تیم اصلی دارد'
+        else:
+            msg = public_error(e)
         return jsonify({'ok': False, 'error': msg})
 
 
@@ -1207,7 +1218,7 @@ def api_user_reset_pw():
         _audit('reset_pw', 'بازنشانی رمز کاربر #%s' % uid)
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/account_update', methods=['POST'])
 @require_auth
@@ -1257,6 +1268,8 @@ def api_account_update():
         msg = str(e)
         if 'UNIQUE' in msg or 'duplicate' in msg.lower():
             msg = 'این نام کاربری قبلاً استفاده شده است'
+        else:
+            msg = public_error(e)
         return jsonify({'ok': False, 'error': msg})
 
 @flask_app.route('/api/autostart', methods=['POST'])
@@ -1278,7 +1291,7 @@ def api_autostart():
                 return jsonify({'ok': False, 'error': err, 'supported': _autostart_supported(), 'enabled': _autostart_get()})
         return jsonify({'ok': True, 'supported': _autostart_supported(), 'enabled': _autostart_get()})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/user_toggle', methods=['POST'])
 @require_auth
@@ -1295,7 +1308,7 @@ def api_user_toggle():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/update_phone', methods=['POST'])
 @require_auth
@@ -1336,7 +1349,7 @@ def api_update_phone():
         _audit('phone_update', 'ویرایش شماره تماس کاربر #%s' % uid)
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/schedule', methods=['POST'])
 @require_auth
@@ -1385,7 +1398,7 @@ def api_schedule():
             rows = rows_to_list(cur)
         return jsonify({'ok': True, 'rows': rows})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/schedule_save', methods=['POST'])
 @require_auth
@@ -1422,7 +1435,7 @@ def api_schedule_save():
         _audit('schedule_save', 'برنامه هفتگی کاربر #%s ذخیره شد' % staff_id)
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/ranking', methods=['POST'])
 @require_auth
@@ -1571,7 +1584,7 @@ def api_ranking():
                         'rank_position': rank_position, 'ranking_total': ranking_total,
                         'today_sched': today_sched, 'today_idx': today_idx})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'ranking': [],
+        return jsonify({'ok': False, 'error': public_error(e), 'ranking': [],
                         'today_sched': [], 'today_idx': -1})
 
 @flask_app.route('/api/holidays', methods=['POST'])
@@ -1586,7 +1599,7 @@ def api_holidays():
             rows = rows_to_list(cur)
         return jsonify({'ok': True, 'rows': rows})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/holiday_save', methods=['POST'])
 @require_auth
@@ -1612,7 +1625,7 @@ def api_holiday_save():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/holiday_delete', methods=['POST'])
 @require_auth
@@ -1627,7 +1640,7 @@ def api_holiday_delete():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 # ── Missions (ماموریت) ──────────────────────────────────────────────────────
 @flask_app.route('/api/missions', methods=['POST'])
@@ -1663,7 +1676,7 @@ def api_missions():
             rows=rows_to_list(cur)
         return jsonify({'ok':True,'rows':rows})
     except Exception as e:
-        return jsonify({'ok':False,'error':str(e),'rows':[]})
+        return jsonify({'ok':False,'error':public_error(e),'rows':[]})
 
 @flask_app.route('/api/mission_save', methods=['POST'])
 @require_auth
@@ -1693,7 +1706,7 @@ def api_mission_save():
             c.commit()
         return jsonify({'ok':True})
     except Exception as e:
-        return jsonify({'ok':False,'error':str(e)})
+        return jsonify({'ok':False,'error':public_error(e)})
 
 @flask_app.route('/api/mission_delete', methods=['POST'])
 @require_auth
@@ -1714,7 +1727,7 @@ def api_mission_delete():
             cur.execute("DELETE FROM Missions WHERE id=?",d.get('id'));c.commit()
         return jsonify({'ok':True})
     except Exception as e:
-        return jsonify({'ok':False,'error':str(e)})
+        return jsonify({'ok':False,'error':public_error(e)})
 
 # ── Attendance (حضور و غیاب) ─────────────────────────────────────────────────
 # Only these roles are actual timed employees for HR purposes. employer and
@@ -1825,7 +1838,7 @@ def api_attendance_heartbeat():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/attendance_close_stale', methods=['POST'])
 @require_auth
@@ -1837,7 +1850,7 @@ def api_attendance_close_stale():
         _close_stale_attendance()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/attendance', methods=['POST'])
 @require_auth
@@ -1866,7 +1879,7 @@ def api_attendance():
             rows=rows_to_list(cur)
         return jsonify({'ok':True,'rows':rows})
     except Exception as e:
-        return jsonify({'ok':False,'error':str(e),'rows':[]})
+        return jsonify({'ok':False,'error':public_error(e),'rows':[]})
 
 @flask_app.route('/api/attendance_save', methods=['POST'])
 @require_auth
@@ -1897,7 +1910,7 @@ def api_attendance_save():
             c.commit()
         return jsonify({'ok':True})
     except Exception as e:
-        return jsonify({'ok':False,'error':str(e)})
+        return jsonify({'ok':False,'error':public_error(e)})
 
 def _can_access_project_notes(actor_id, actor_role, project_id, manage=False):
     """Permission + team boundary for VPN/remote/login information."""
@@ -1929,7 +1942,7 @@ def api_project_notes_get():
             row = cur.fetchone()
         return jsonify({'ok': True, 'notes': (row[0] if row else None) or ''})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/project_notes_save', methods=['POST'])
 @require_auth
@@ -1947,7 +1960,7 @@ def api_project_notes_save():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 def _can_view_time_report(actor_id, actor_role, staff_id):
     actor = _current_user() or {'id': actor_id, 'role': actor_role}
@@ -2109,7 +2122,7 @@ def api_time_report():
         data = _gather_time_report(staff_id, from_j, to_j)
         return jsonify({'ok': True, **data})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/export_time_report', methods=['POST'])
 @require_auth
@@ -2166,7 +2179,7 @@ def api_leaves():
             rows=rows_to_list(cur)
         return jsonify({'ok':True,'rows':rows})
     except Exception as e:
-        return jsonify({'ok':False,'error':str(e),'rows':[]})
+        return jsonify({'ok':False,'error':public_error(e),'rows':[]})
 
 @flask_app.route('/api/leave_save', methods=['POST'])
 @require_auth
@@ -2207,7 +2220,7 @@ def api_leave_save():
             except Exception:pass
         return jsonify({'ok':True,'status':status})
     except Exception as e:
-        return jsonify({'ok':False,'error':str(e)})
+        return jsonify({'ok':False,'error':public_error(e)})
 
 _REWARD_LEAVE_MSG = 'این مرخصی تشویقی است؛ روز آن را از «امتیاز و فروشگاه» ← «خریدهای من» تغییر دهید یا خرید را لغو کنید تا سکه برگردد'
 
@@ -2246,7 +2259,7 @@ def api_leave_update():
                 start_time=end_time=None
             cur.execute("UPDATE Leaves SET leave_date=?,end_date=?,leave_type=?,start_time=?,end_time=?,reason=? WHERE id=?",leave_date,end_date,leave_type,start_time,end_time,d.get('reason'),lid);c.commit()
         _audit('leave_update','مرخصی #%s ویرایش شد'%lid);return jsonify({'ok':True})
-    except Exception as e:return jsonify({'ok':False,'error':str(e)})
+    except Exception as e:return jsonify({'ok':False,'error':public_error(e)})
 
 @flask_app.route('/api/leave_review', methods=['POST'])
 @require_auth
@@ -2267,7 +2280,7 @@ def api_leave_review():
         if affected==0:return jsonify({'ok':False,'error':'این درخواست قبلاً بررسی شده یا یافت نشد'})
         if row:_notify(row[0],'leave_'+decision,('مرخصی شما تایید شد: ' if decision=='approved' else 'مرخصی شما رد شد: ')+(row[1] or ''))
         _audit('leave_review','درخواست #%s -> %s'%(d.get('id'),decision));return jsonify({'ok':True})
-    except Exception as e:return jsonify({'ok':False,'error':str(e)})
+    except Exception as e:return jsonify({'ok':False,'error':public_error(e)})
 
 @flask_app.route('/api/leave_delete', methods=['POST'])
 @require_auth
@@ -2284,7 +2297,7 @@ def api_leave_delete():
             if not (can_manage or can_own):return jsonify({'ok':False,'error':'دسترسی غیرمجاز یا خارج از محدوده تیم'}),403
             cur.execute("DELETE FROM Leaves WHERE id=?",leave_id);c.commit()
         return jsonify({'ok':True})
-    except Exception as e:return jsonify({'ok':False,'error':str(e)})
+    except Exception as e:return jsonify({'ok':False,'error':public_error(e)})
 
 @flask_app.route('/api/user_delete', methods=['POST'])
 @require_auth
@@ -2306,7 +2319,7 @@ def api_user_delete():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 
 @flask_app.route('/api/role_permissions', methods=['POST'])
@@ -2327,7 +2340,7 @@ def api_role_permissions():
                         'defaults': defaults,
                         'non_delegable': sorted(NON_DELEGABLE)})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 
 @flask_app.route('/api/role_permissions_save', methods=['POST'])
@@ -2359,83 +2372,7 @@ def api_role_permissions_save():
         _audit('role_permissions_save', 'نقش %s: %s دسترسی فعال' % (role, len(selected)))
         return jsonify({'ok': True, 'permissions': sorted(selected)})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
-
-_QUERY_FORBIDDEN = ('users', 'sessions')
-
-def _sql_is_safe_read(sql):
-    """Guard for the generic /api/query endpoint: only allow a single
-    read-only SELECT, and never let it expose password hashes or session
-    tokens. JOINing Users purely for display names is fine and common; what
-    must never come back through this generic path is the credential columns
-    themselves."""
-    s = (sql or '').strip().lower().rstrip(';')
-    if not s.startswith('select'):
-        return False, 'فقط عملیات خواندن (SELECT) مجاز است'
-    # Block stacked statements / write keywords hidden after the SELECT.
-    for bad in (';', ' insert ', ' update ', ' delete ', ' drop ', ' alter ',
-                ' truncate ', ' exec ', ' merge ', ' into '):
-        if bad in s:
-            return False, 'دستور غیرمجاز'
-    # Never expose credentials or session tokens through the generic reader.
-    if 'password' in s:
-        return False, 'دسترسی به رمز عبور مجاز نیست'
-    import re as _re
-    if _re.search(r'\bsessions\b', s):
-        return False, 'دسترسی به این جدول از این مسیر مجاز نیست'
-    return True, None
-
-@flask_app.route('/api/query', methods=['POST'])
-@require_roles('admin')
-def api_query():
-    try:
-        data = request.get_json()
-        sql = data.get('sql', '')
-        params = data.get('params', [])
-        safe, err = _sql_is_safe_read(sql)
-        if not safe:
-            return jsonify({'ok': False, 'error': err, 'rows': []})
-        with _db_lock:
-            c = get_conn()
-            cur = c.cursor()
-            cur.execute(sql, params)
-            rows = rows_to_list(cur)
-        return jsonify({'ok': True, 'rows': rows})
-    except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
-
-@flask_app.route('/api/run', methods=['POST'])
-@require_roles('admin')
-def api_run():
-    try:
-        data = request.get_json()
-        sql = data.get('sql', '')
-        params = data.get('params', [])
-        # The generic write endpoint must never be used to mutate the
-        # auth-critical tables - all user/password/session changes have
-        # dedicated, validated endpoints. This is the guard that prevents a
-        # crafted request (or a buggy client) from doing something like
-        # "UPDATE Users SET password_hash=..." with no WHERE, which would
-        # rewrite EVERYONE's password at once.
-        low = (sql or '').lower()
-        import re as _re
-        for tbl in _QUERY_FORBIDDEN:
-            if _re.search(r'\b' + tbl + r'\b', low):
-                return jsonify({'ok': False, 'error': 'تغییر این جدول از این مسیر مجاز نیست؛ از عملیات مخصوص کاربران استفاده کنید'})
-        # Extra belt-and-suspenders: any UPDATE/DELETE must be row-scoped
-        # (have a WHERE clause), so a missing-WHERE accident can't wipe or
-        # rewrite an entire table.
-        stripped = low.strip()
-        if (stripped.startswith('update ') or stripped.startswith('delete ')) and ' where ' not in low:
-            return jsonify({'ok': False, 'error': 'عملیات UPDATE/DELETE بدون شرط WHERE مجاز نیست'})
-        with _db_lock:
-            c = get_conn()
-            cur = c.cursor()
-            cur.execute(sql, params)
-            c.commit()
-        return jsonify({'ok': True})
-    except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 # ══════════════════════════════════════════════════════════════════
 #  v6 endpoints: notifications, comments, templates, saved filters,
@@ -2474,7 +2411,7 @@ def api_notifications():
             unread = cur.fetchone()[0]
         return jsonify({'ok': True, 'rows': rows, 'unread': unread})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': [], 'unread': 0})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': [], 'unread': 0})
 
 @flask_app.route('/api/notifications_read', methods=['POST'])
 @require_auth
@@ -2492,7 +2429,7 @@ def api_notifications_read():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/task_comments', methods=['POST'])
 @require_auth
@@ -2511,7 +2448,7 @@ def api_task_comments():
             rows = rows_to_list(cur)
         return jsonify({'ok': True, 'rows': rows})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/task_comment_add', methods=['POST'])
 @require_auth
@@ -2543,7 +2480,7 @@ def api_task_comment_add():
         _audit('comment_add', 'تسک #%s' % tid, user=u)
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/templates', methods=['POST'])
 @require_auth
@@ -2556,7 +2493,7 @@ def api_templates():
             rows = rows_to_list(cur)
         return jsonify({'ok': True, 'rows': rows})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/template_save', methods=['POST'])
 @require_auth
@@ -2578,7 +2515,7 @@ def api_template_save():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/template_delete', methods=['POST'])
 @require_auth
@@ -2591,7 +2528,7 @@ def api_template_delete():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/saved_filters', methods=['POST'])
 @require_auth
@@ -2608,7 +2545,7 @@ def api_saved_filters():
             rows = rows_to_list(cur)
         return jsonify({'ok': True, 'rows': rows})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/saved_filter_save', methods=['POST'])
 @require_auth
@@ -2628,7 +2565,7 @@ def api_saved_filter_save():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/saved_filter_delete', methods=['POST'])
 @require_auth
@@ -2642,7 +2579,7 @@ def api_saved_filter_delete():
             c.commit()
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/audit_log', methods=['POST'])
 @require_auth
@@ -2656,7 +2593,7 @@ def api_audit_log():
             rows = rows_to_list(cur)
         return jsonify({'ok': True, 'rows': rows})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/active_sessions', methods=['POST'])
 @require_roles('admin')
@@ -2689,7 +2626,7 @@ def api_active_sessions():
         rows = sorted(grouped.values(), key=lambda x: str(x.get('last_seen') or ''), reverse=True)
         return jsonify({'ok': True, 'rows': rows, 'total_sessions': len(raw)})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/session_revoke', methods=['POST'])
 @require_roles('admin')
@@ -2718,7 +2655,7 @@ def api_session_revoke():
         _audit('session_revoke', 'خروج اجباری کاربر #%s (%s نشست%s)' % (user_id, count, ' مشخص' if session_key else ''))
         return jsonify({'ok': True, 'count': count})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/system_health', methods=['POST'])
 @require_auth
@@ -2753,12 +2690,12 @@ def api_system_health():
         health['last_backup'] = last_backup
         return jsonify({'ok': True, 'health': health})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'health': {'db_ok': False}})
+        return jsonify({'ok': False, 'error': public_error(e), 'health': {'db_ok': False}})
 
 @flask_app.route('/api/data_export', methods=['POST'])
 @require_roles('admin')
 def api_data_export():
-    """Logical JSON export.  File bytes and live session tokens are excluded;
+    """Logical JSON export.  File bytes, password hashes and live session tokens are excluded;
     use the verified .taskhubbackup checkpoints for a restorable backup."""
     try:
         import json as _json
@@ -2777,6 +2714,9 @@ def api_data_export():
                 try:
                     cur.execute("SELECT * FROM %s" % t)
                     dump[t] = rows_to_list(cur)
+                    if t == 'Users':
+                        for row in dump[t]:
+                            row.pop('password_hash', None)
                 except Exception:
                     dump[t] = []
         _audit('data_export', 'خروجی کامل داده')
@@ -2786,7 +2726,7 @@ def api_data_export():
         fname = 'taskhub_backup_%s.json' % datetime.datetime.now().strftime('%Y%m%d_%H%M')
         return send_file(path, as_attachment=True, download_name=fname, mimetype='application/json')
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/analytics', methods=['POST'])
 @require_auth
@@ -2825,7 +2765,7 @@ def api_analytics():
         return jsonify({'ok': True, 'by_city': by_city, 'by_staff': by_staff,
                         'this_month': this_m, 'last_month': last_m})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/overdue_tasks', methods=['POST'])
 @require_auth
@@ -2866,7 +2806,7 @@ def api_overdue_tasks():
             rows = rows_to_list(cur)
         return jsonify({'ok': True, 'rows': rows, 'today': today})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/presence', methods=['POST'])
 @require_auth
@@ -2923,7 +2863,7 @@ def api_presence():
             p['current_task'] = working.get(p['id'])
         return jsonify({'ok': True, 'rows': present})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/dashboard_stats', methods=['POST'])
 @require_auth
@@ -2993,7 +2933,7 @@ def api_dashboard_stats():
             'by_staff': by_staff,
             'totals': {'tasks': total_tasks, 'cities': total_cities, 'projects': total_projects}})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/task_evaluation_get', methods=['POST'])
 @require_auth
@@ -3030,7 +2970,7 @@ def api_task_evaluation_get():
             p['rated_by_name'] = e['rated_by_name'] if e else None
         return jsonify({'ok': True, 'rows': people})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e), 'rows': []})
+        return jsonify({'ok': False, 'error': public_error(e), 'rows': []})
 
 @flask_app.route('/api/task_evaluation_save', methods=['POST'])
 @require_auth
@@ -3082,7 +3022,7 @@ def api_task_evaluation_save():
         _audit('task_evaluate', 'تسک #%s' % tid)
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/task_time_daily', methods=['POST'])
 @require_auth
@@ -3127,7 +3067,7 @@ def api_task_time_daily():
                 for k, v in sorted(agg.items())]
         return jsonify({'ok': True, 'rows': rows})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/task_transition', methods=['POST'])
 @require_auth
@@ -3450,7 +3390,7 @@ def api_task_transition():
             pass
         return jsonify({'ok': True, 'auto_paused': auto_paused})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 @flask_app.route('/api/export', methods=['POST'])
 @require_auth
@@ -3626,7 +3566,7 @@ def api_winaction():
             _hide_to_tray(logging.getLogger('taskhub'))
         return jsonify({'ok': True})
     except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
+        return jsonify({'ok': False, 'error': public_error(e)})
 
 # ── Export Excel ──────────────────────────────────────────────────────────────
 def _fa(text):

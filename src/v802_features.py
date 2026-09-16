@@ -14,6 +14,7 @@ import json
 import os
 
 from flask import g, jsonify, request, send_file
+from api_errors import public_error
 
 import fa_font
 from rbac import user_has_permission
@@ -511,7 +512,7 @@ def register_v802_routes(app, get_conn, db_lock, require_auth, require_roles,
                 rows = rows_to_list(cur)
             return ok(rows=rows, can_edit=user_has_permission(g.user, "contract_weights.manage"))
         except Exception as exc:
-            return err(exc)
+            return err(public_error(exc))
 
     @app.route("/api/v8/financial_attribution", methods=["POST"])
     @require_auth
@@ -526,7 +527,7 @@ def register_v802_routes(app, get_conn, db_lock, require_auth, require_roles,
         except ValueError as exc:
             return err(exc)
         except Exception as exc:
-            return err(exc)
+            return err(public_error(exc))
 
     def _fa_pdf(value):
         import arabic_reshaper
@@ -727,4 +728,4 @@ def register_v802_routes(app, get_conn, db_lock, require_auth, require_roles,
         except PermissionError as exc:
             return err(exc, 403)
         except Exception as exc:
-            return err(exc)
+            return err(public_error(exc))

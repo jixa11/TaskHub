@@ -129,6 +129,7 @@ if exist "dist\TaskHub.exe" del /q "dist\TaskHub.exe"
   --hidden-import fa_font ^
   --hidden-import gamification ^
   --hidden-import gamification_domain ^
+  --hidden-import api_errors ^
   --hidden-import webview ^
   --hidden-import webview.platforms.edgechromium ^
   --hidden-import pystray ^
