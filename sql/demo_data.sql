@@ -21,16 +21,16 @@ BEGIN TRANSACTION;
 -- کاربران نمونه (رمز همه: Taskhub@1404)
 ----------------------------------------------------------------------
 SET IDENTITY_INSERT Users ON;
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(101,N'maryam.rezaei',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'manager',N'مریم رضایی',N'مدیر شرکت',N'09120000101',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(102,N'saeed.kazemi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'planner',N'سعید کاظمی',N'پلنر تیم توسعه',N'09120000102',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(103,N'zahra.mousavi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'finance',N'زهرا موسوی',N'کارشناس مالی',N'09120000103',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(104,N'nima.ahmadi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'reporter',N'نیما احمدی',N'کارشناس اجرایی',N'09120000104',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(105,N'elham.karimi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'lead',N'الهام کریمی',N'سرگروه پشتیبانی',N'09120000105',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(106,N'reza.heidari',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'support',N'رضا حیدری',N'کارشناس پشتیبانی',N'09120000106',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(107,N'sara.nouri',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'support',N'سارا نوری',N'کارشناس پشتیبانی',N'09120000107',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(108,N'amir.sadeghi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'support',N'امیر صادقی',N'کارشناس پشتیبانی',N'09120000108',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(109,N'farhad.yazdani',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'supervisor',N'فرهاد یزدانی',N'راهبر سامانه',N'09120000109',1,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(110,N'leila.sharifi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'employer',N'لیلا شریفی',N'کارفرمای پروژه انبار',N'09120000110',1,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(101,N'maryam.rezaei',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'manager',N'مریم رضایی',N'مدیر شرکت',N'09120000101',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(102,N'saeed.kazemi',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'planner',N'سعید کاظمی',N'پلنر تیم توسعه',N'09120000102',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(103,N'zahra.mousavi',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'finance',N'زهرا موسوی',N'کارشناس مالی',N'09120000103',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(104,N'nima.ahmadi',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'reporter',N'نیما احمدی',N'کارشناس اجرایی',N'09120000104',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(105,N'elham.karimi',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'lead',N'الهام کریمی',N'سرگروه پشتیبانی',N'09120000105',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(106,N'reza.heidari',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'support',N'رضا حیدری',N'کارشناس پشتیبانی',N'09120000106',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(107,N'sara.nouri',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'support',N'سارا نوری',N'کارشناس پشتیبانی',N'09120000107',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(108,N'amir.sadeghi',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'support',N'امیر صادقی',N'کارشناس پشتیبانی',N'09120000108',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(109,N'farhad.yazdani',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'supervisor',N'فرهاد یزدانی',N'راهبر سامانه',N'09120000109',1,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(110,N'leila.sharifi',N'95c96402cabe58c5695ac686d21d747e$2cec9b677ac47284aefa40355f4b085ef2aeb7310d8443088abbe3b9c5b7310a',N'employer',N'لیلا شریفی',N'کارفرمای پروژه انبار',N'09120000110',1,1,GETDATE());
 SET IDENTITY_INSERT Users OFF;
 
 -- شهر، نوع پروژه، پروژه و دسته‌بندی تسک
@@ -402,38 +402,40 @@ INSERT INTO Notifications(user_id,kind,title,link_task_id,is_read,created_at) VA
 INSERT INTO Notifications(user_id,kind,title,link_task_id,is_read,created_at) VALUES(102,N'task_submitted',N'تسک «پشتیبانی تلفنی کاربران درگاه» منتظر تأیید است',1007,0,GETDATE());
 COMMIT TRANSACTION;
 PRINT N'--- داده‌ی نمونه ثبت شد ---';
-PRINT N'Attendance: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Attendance));
-PRINT N'Cities: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Cities));
-PRINT N'ContractExtensions: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM ContractExtensions));
-PRINT N'ContractProjectTeams: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM ContractProjectTeams));
-PRINT N'ContractStatementItems: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM ContractStatementItems));
-PRINT N'ContractStatements: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM ContractStatements));
-PRINT N'Contracts: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Contracts));
-PRINT N'FinancialPlanPeriods: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM FinancialPlanPeriods));
-PRINT N'FinancialPlans: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM FinancialPlans));
-PRINT N'GameCoinLedger: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM GameCoinLedger));
-PRINT N'GameKudos: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM GameKudos));
-PRINT N'GameMonthlyRatings: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM GameMonthlyRatings));
-PRINT N'GameUserBadges: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM GameUserBadges));
-PRINT N'GameWallets: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM GameWallets));
-PRINT N'GameXpLedger: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM GameXpLedger));
-PRINT N'Leaves: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Leaves));
-PRINT N'Missions: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Missions));
-PRINT N'Notifications: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Notifications));
-PRINT N'ProjectTeams: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM ProjectTeams));
-PRINT N'Projects: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Projects));
-PRINT N'ShopItems: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM ShopItems));
-PRINT N'ShopOrders: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM ShopOrders));
-PRINT N'TaskAssignees: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM TaskAssignees));
-PRINT N'TaskCategories: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM TaskCategories));
-PRINT N'TaskComments: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM TaskComments));
-PRINT N'TaskEvents: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM TaskEvents));
-PRINT N'TaskTimeLog: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM TaskTimeLog));
-PRINT N'Tasks: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Tasks));
-PRINT N'TeamMembers: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM TeamMembers));
-PRINT N'Teams: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Teams));
-PRINT N'Users: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM Users));
-PRINT N'WeeklySchedule: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM WeeklySchedule));
-PRINT N'WorkGroupMembers: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM WorkGroupMembers));
-PRINT N'WorkGroupProjects: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM WorkGroupProjects));
-PRINT N'WorkGroups: ' + CONVERT(nvarchar(10), (SELECT COUNT(*) FROM WorkGroups));
+SELECT * FROM (
+    SELECT 'Attendance' AS [table], COUNT(*) AS [rows] FROM Attendance
+    UNION ALL SELECT 'Cities' AS [table], COUNT(*) AS [rows] FROM Cities
+    UNION ALL SELECT 'ContractExtensions' AS [table], COUNT(*) AS [rows] FROM ContractExtensions
+    UNION ALL SELECT 'ContractProjectTeams' AS [table], COUNT(*) AS [rows] FROM ContractProjectTeams
+    UNION ALL SELECT 'ContractStatementItems' AS [table], COUNT(*) AS [rows] FROM ContractStatementItems
+    UNION ALL SELECT 'ContractStatements' AS [table], COUNT(*) AS [rows] FROM ContractStatements
+    UNION ALL SELECT 'Contracts' AS [table], COUNT(*) AS [rows] FROM Contracts
+    UNION ALL SELECT 'FinancialPlanPeriods' AS [table], COUNT(*) AS [rows] FROM FinancialPlanPeriods
+    UNION ALL SELECT 'FinancialPlans' AS [table], COUNT(*) AS [rows] FROM FinancialPlans
+    UNION ALL SELECT 'GameCoinLedger' AS [table], COUNT(*) AS [rows] FROM GameCoinLedger
+    UNION ALL SELECT 'GameKudos' AS [table], COUNT(*) AS [rows] FROM GameKudos
+    UNION ALL SELECT 'GameMonthlyRatings' AS [table], COUNT(*) AS [rows] FROM GameMonthlyRatings
+    UNION ALL SELECT 'GameUserBadges' AS [table], COUNT(*) AS [rows] FROM GameUserBadges
+    UNION ALL SELECT 'GameWallets' AS [table], COUNT(*) AS [rows] FROM GameWallets
+    UNION ALL SELECT 'GameXpLedger' AS [table], COUNT(*) AS [rows] FROM GameXpLedger
+    UNION ALL SELECT 'Leaves' AS [table], COUNT(*) AS [rows] FROM Leaves
+    UNION ALL SELECT 'Missions' AS [table], COUNT(*) AS [rows] FROM Missions
+    UNION ALL SELECT 'Notifications' AS [table], COUNT(*) AS [rows] FROM Notifications
+    UNION ALL SELECT 'ProjectTeams' AS [table], COUNT(*) AS [rows] FROM ProjectTeams
+    UNION ALL SELECT 'Projects' AS [table], COUNT(*) AS [rows] FROM Projects
+    UNION ALL SELECT 'ShopItems' AS [table], COUNT(*) AS [rows] FROM ShopItems
+    UNION ALL SELECT 'ShopOrders' AS [table], COUNT(*) AS [rows] FROM ShopOrders
+    UNION ALL SELECT 'TaskAssignees' AS [table], COUNT(*) AS [rows] FROM TaskAssignees
+    UNION ALL SELECT 'TaskCategories' AS [table], COUNT(*) AS [rows] FROM TaskCategories
+    UNION ALL SELECT 'TaskComments' AS [table], COUNT(*) AS [rows] FROM TaskComments
+    UNION ALL SELECT 'TaskEvents' AS [table], COUNT(*) AS [rows] FROM TaskEvents
+    UNION ALL SELECT 'TaskTimeLog' AS [table], COUNT(*) AS [rows] FROM TaskTimeLog
+    UNION ALL SELECT 'Tasks' AS [table], COUNT(*) AS [rows] FROM Tasks
+    UNION ALL SELECT 'TeamMembers' AS [table], COUNT(*) AS [rows] FROM TeamMembers
+    UNION ALL SELECT 'Teams' AS [table], COUNT(*) AS [rows] FROM Teams
+    UNION ALL SELECT 'Users' AS [table], COUNT(*) AS [rows] FROM Users
+    UNION ALL SELECT 'WeeklySchedule' AS [table], COUNT(*) AS [rows] FROM WeeklySchedule
+    UNION ALL SELECT 'WorkGroupMembers' AS [table], COUNT(*) AS [rows] FROM WorkGroupMembers
+    UNION ALL SELECT 'WorkGroupProjects' AS [table], COUNT(*) AS [rows] FROM WorkGroupProjects
+    UNION ALL SELECT 'WorkGroups' AS [table], COUNT(*) AS [rows] FROM WorkGroups
+) AS loaded ORDER BY [table];
