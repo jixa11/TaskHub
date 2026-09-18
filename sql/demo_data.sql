@@ -5,7 +5,7 @@
    جدول‌ها ساخته شوند. این اسکریپت را روی دیتابیس واقعی اجرا نکنید.
 
    رمز همه‌ی کاربران نمونه: Taskhub@1404
-   نام‌های کاربری: maryam.rezaei, saeed.kazemi, zahra.mousavi, nima.ahmadi ...
+   نام‌های کاربری: maryam.rezaei, saeed.kazemi, zahra.mousavi, nima.ahmadi …
    کاربر admin هم با رمز داخل initial_admin_password.txt کار می‌کند.
 ------------------------------------------------------------------ */
 SET NOCOUNT ON;
@@ -21,16 +21,16 @@ BEGIN TRANSACTION;
 -- کاربران نمونه (رمز همه: Taskhub@1404)
 ----------------------------------------------------------------------
 SET IDENTITY_INSERT Users ON;
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(101,N'maryam.rezaei',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'manager',N'مریم رضایی',N'مدیر شرکت',N'09120000101',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(102,N'saeed.kazemi',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'planner',N'سعید کاظمی',N'پلنر تیم توسعه',N'09120000102',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(103,N'zahra.mousavi',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'finance',N'زهرا موسوی',N'کارشناس مالی',N'09120000103',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(104,N'nima.ahmadi',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'reporter',N'نیما احمدی',N'کارشناس اجرایی',N'09120000104',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(105,N'elham.karimi',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'lead',N'الهام کریمی',N'سرگروه پشتیبانی',N'09120000105',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(106,N'reza.heidari',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'support',N'رضا حیدری',N'کارشناس پشتیبانی',N'09120000106',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(107,N'sara.nouri',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'support',N'سارا نوری',N'کارشناس پشتیبانی',N'09120000107',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(108,N'amir.sadeghi',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'support',N'امیر صادقی',N'کارشناس پشتیبانی',N'09120000108',NULL,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(109,N'farhad.yazdani',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'supervisor',N'فرهاد یزدانی',N'راهبر سامانه',N'09120000109',1,1,GETDATE());
-INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(110,N'leila.sharifi',N'43d26064b013c35f737a20116afae59a$19341f7dd30ae6c0bdab3544de0c53b3271251508d52489eb8040eb549ffedd0',N'employer',N'لیلا شریفی',N'کارفرمای پروژه انبار',N'09120000110',1,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(101,N'maryam.rezaei',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'manager',N'مریم رضایی',N'مدیر شرکت',N'09120000101',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(102,N'saeed.kazemi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'planner',N'سعید کاظمی',N'پلنر تیم توسعه',N'09120000102',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(103,N'zahra.mousavi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'finance',N'زهرا موسوی',N'کارشناس مالی',N'09120000103',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(104,N'nima.ahmadi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'reporter',N'نیما احمدی',N'کارشناس اجرایی',N'09120000104',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(105,N'elham.karimi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'lead',N'الهام کریمی',N'سرگروه پشتیبانی',N'09120000105',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(106,N'reza.heidari',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'support',N'رضا حیدری',N'کارشناس پشتیبانی',N'09120000106',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(107,N'sara.nouri',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'support',N'سارا نوری',N'کارشناس پشتیبانی',N'09120000107',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(108,N'amir.sadeghi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'support',N'امیر صادقی',N'کارشناس پشتیبانی',N'09120000108',NULL,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(109,N'farhad.yazdani',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'supervisor',N'فرهاد یزدانی',N'راهبر سامانه',N'09120000109',1,1,GETDATE());
+INSERT INTO Users(id,username,password_hash,role,display_name,position,phone,project_id,is_active,created_at) VALUES(110,N'leila.sharifi',N'e3aec4e9ac5f1e5f3b278cb72159ae53$57b7ca7f0812fd08974f7e05d1adc3cf679866724b65f1257140ce823f5e662d',N'employer',N'لیلا شریفی',N'کارفرمای پروژه انبار',N'09120000110',1,1,GETDATE());
 SET IDENTITY_INSERT Users OFF;
 
 -- شهر، نوع پروژه، پروژه و دسته‌بندی تسک
