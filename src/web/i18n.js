@@ -209,12 +209,23 @@ var I18N = (function () {
       .catch(function () { /* no dictionary: the app stays Persian */ });
   }
 
+  function markSwitch() {
+    // The button offers the other language, so it reads FA while in English.
+    var button = document.getElementById('lang-toggle');
+    if (button) button.textContent = language === 'en' ? 'FA' : 'EN';
+  }
+
   function start() {
     language = stored() === 'en' ? 'en' : 'fa';
     var root = document.documentElement;
     root.setAttribute('lang', language === 'en' ? 'en' : 'fa');
     root.setAttribute('dir', language === 'en' ? 'ltr' : 'rtl');
     root.setAttribute('data-lang', language);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', markSwitch);
+    } else {
+      markSwitch();
+    }
     if (language !== 'en') return Promise.resolve();
     return load().then(function () {
       translateDocument();
