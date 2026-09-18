@@ -5,6 +5,7 @@ const STATIC_ASSETS = [
   '/assets/v7_ui.css', '/assets/v7_ui.js',
   '/assets/v8_ui.css', '/assets/v8_ui.js',
   '/assets/game_ui.css', '/assets/game_ui.js',
+  '/assets/i18n.js', '/assets/i18n.json',
   '/assets/taskhub-icon-192.png', '/assets/taskhub-icon-512.png',
   '/assets/Vazirmatn-Regular.ttf', '/assets/Vazirmatn-Bold.ttf',
   '/manifest.webmanifest'

@@ -705,6 +705,7 @@ select, select option { font-family: Vazirmatn, Tahoma, sans-serif !important; }
       <div class="tb2"><h2 id="tbh">داشبورد</h2><p id="tbs">خلاصه وضعیت سیستم</p></div>
       <div class="stat-pill"><span>📋</span><span class="num" id="tpt">0</span><span>تسک فعال</span></div>
       <div class="stat-pill" data-permission="dashboard.organization_summary"><span>👥</span><span class="num" id="tpct">0</span><span>کارفرما</span></div>
+      <button id="lang-toggle" onclick="toggleLanguage()" title="فارسی / English" aria-label="زبان" data-no-i18n>EN</button>
       <button id="theme-toggle" onclick="toggleTheme()" title="حالت روشن/تیره" aria-label="حالت روشن یا تیره">🌙</button>
       <div id="notif-wrap">
         <button id="notif-bell" onclick="toggleNotifPanel(event)" title="اعلان‌ها" aria-label="اعلان‌ها">🔔<span id="notif-badge" class="notif-badge" style="display:none;">0</span></button>
@@ -5822,6 +5823,7 @@ function dpClear(){
 <script src="/assets/v8_ui.js"></script>
 <link rel="stylesheet" href="/assets/game_ui.css">
 <script src="/assets/game_ui.js"></script>
+<script src="/assets/i18n.js"></script>
 <script>
 async function taskhubClearCacheAndReload(){
   try{

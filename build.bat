@@ -104,6 +104,8 @@ if exist "dist\TaskHub.exe" del /q "dist\TaskHub.exe"
   --add-data "src\web\v8_ui.css;web" ^
   --add-data "src\web\game_ui.js;web" ^
   --add-data "src\web\game_ui.css;web" ^
+  --add-data "src\web\i18n.js;web" ^
+  --add-data "src\web\i18n.json;web" ^
   --add-data "src\web\manifest.webmanifest;web" ^
   --add-data "src\web\service-worker.js;web" ^
   --add-data "src\web\taskhub-icon-192.png;web" ^

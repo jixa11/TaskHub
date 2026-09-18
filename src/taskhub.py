@@ -414,7 +414,7 @@ def index():
 def app_asset(filename):
     """Serve versioned local UI assets without exposing arbitrary files."""
     if filename not in ('v7_ui.js', 'v7_ui.css', 'v8_ui.js', 'v8_ui.css',
-                            'game_ui.js', 'game_ui.css',
+                            'game_ui.js', 'game_ui.css', 'i18n.js', 'i18n.json',
                             'taskhub-icon-192.png', 'taskhub-icon-512.png',
                             'Vazirmatn-Regular.ttf', 'Vazirmatn-Bold.ttf'):
         return ('Not found', 404)
