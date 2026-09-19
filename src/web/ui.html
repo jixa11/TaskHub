@@ -516,8 +516,17 @@ select.fi{cursor:pointer;appearance:none;}
   .kb-col{max-height:none;}
   .md{width:100vw;max-width:100vw;max-height:100dvh;border-radius:0;height:100dvh;}
   .mo{align-items:stretch;justify-content:stretch;}
+  /* Tables scroll sideways instead of squeezing every column: at 640px the
+     eleven columns of the task list left each word on its own line. */
   .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .tw table{min-width:640px;}
+  .tw table{min-width:780px;}
+  .tw th,.tw td{white-space:nowrap;}
+  /* The name column - the second one in every list, after the row number -
+     keeps enough room to read; the rest simply scroll. */
+  .tw th:nth-child(2),.tw td:nth-child(2){white-space:normal;min-width:150px;}
+  .tw .ab{width:32px;height:32px;}
+  /* Room for the floating language button. */
+  .page{padding-bottom:78px;}
   .fb{padding:10px;gap:8px;}
   .cal-grid{gap:3px;padding:8px;}
   .cal-cell{min-height:52px;font-size:10px;}
@@ -529,7 +538,7 @@ select.fi{cursor:pointer;appearance:none;}
 @media (max-width: 480px){
   .sg{grid-template-columns:1fr;}
   .rsr{grid-template-columns:1fr;}
-  .page{padding:10px;}
+  .page{padding:10px;padding-bottom:78px;}
 }
 .charts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px;}
 .chart-card{padding:16px 18px;display:flex;flex-direction:column;}
@@ -588,7 +597,63 @@ select.fi{cursor:pointer;appearance:none;}
   .md .mb{padding:12px;}
   .mf .btn{flex:1 1 120px;justify-content:center;}
   .v8-check-list[data-access-group]{grid-template-columns:1fr!important;}
+
+  /* ── Inbox on a phone ──
+     One column of cards, tap targets big enough for a thumb, and an empty
+     status collapsed to a single line instead of a screenful of nothing. */
+  .kb-col{padding:10px;}
+  .kb-col-h{margin-bottom:8px;padding-bottom:7px;}
+  .kb-card{padding:11px;margin-bottom:8px;}
+  .kb-card-t{font-size:13px;}
+  .kb-actions{gap:7px;margin-top:11px;}
+  .kb-act{flex:1 1 100%;min-height:40px;font-size:12px;padding:9px 10px;}
+  .kb-col:has(.kb-empty){min-height:0;}
+  .kb-col:has(.kb-empty) .kb-col-body{min-height:0;}
+  .kb-col:has(.kb-empty) .kb-empty{padding:6px 0;}
+
+  /* Filter bars: an orderly two-column grid. One per row was tidy but pushed
+     the list itself off the screen. */
+  .fb{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 12px;align-items:center;}
+  .fb>span,.fb .btn,.fb .ts,.fb input[type="text"]{grid-column:1/-1;}
+  .fb .fs,.fb .ts,.fb input,.fb select,.fb .btn{width:100%;min-height:38px;}
+  .tt{flex-direction:column;align-items:stretch;gap:8px;}
+  .tt .btn{width:100%;min-height:38px;}
+
+  #lang-toggle{height:36px;padding:0 13px;font-size:11px;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px));inset-inline-end:12px;}
 }
+/* A few blocks pin right-to-left in their own rule; in English they follow
+   the page instead, otherwise text is clipped at the wrong end. */
+html[data-lang="en"] .ts,
+html[data-lang="en"] .fi,
+html[data-lang="en"] .v8-user-chip,
+html[data-lang="en"] #notif-panel,
+html[data-lang="en"] #lg-user,
+html[data-lang="en"] #lg-pass,
+html[data-lang="en"] #sin{direction:ltr;text-align:left;}
+
+/* ── Language switch ──
+   Floats in the bottom corner on every screen, including login, and follows
+   the writing direction: bottom-left in Persian, bottom-right in English. */
+#lang-toggle{
+  position:fixed;z-index:900;
+  bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  inset-inline-end:18px;
+  display:inline-flex;align-items:center;gap:6px;
+  height:40px;padding:0 15px;
+  background:var(--card);color:var(--txt2);
+  border:1px solid var(--border);border-radius:999px;
+  font-family:'Vazirmatn',Tahoma,sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
+  box-shadow:0 8px 22px rgba(0,0,0,.35);
+  cursor:pointer;transition:color .18s,border-color .18s,transform .18s,opacity .18s;
+  opacity:.92;backdrop-filter:blur(6px);
+}
+#lang-toggle:hover,#lang-toggle:focus-visible{opacity:1;}
+#lang-toggle::before{content:'🌐';font-size:14px;letter-spacing:0;}
+#lang-toggle:hover{color:var(--sky);border-color:var(--sky);transform:translateY(-2px);}
+#lang-toggle:focus-visible{outline:2px solid var(--sky);outline-offset:2px;}
+body.light #lang-toggle{box-shadow:0 8px 22px rgba(31,56,100,.16);}
+
 /* ── Notifications & theme toggle ── */
 #theme-toggle,#notif-bell{background:var(--card);border:1px solid var(--border);color:var(--txt);border-radius:9px;width:38px;height:38px;font-size:16px;cursor:pointer;flex-shrink:0;position:relative;}
 #theme-toggle:hover,#notif-bell:hover{border-color:var(--sky);}
@@ -705,7 +770,6 @@ select, select option { font-family: Vazirmatn, Tahoma, sans-serif !important; }
       <div class="tb2"><h2 id="tbh">داشبورد</h2><p id="tbs">خلاصه وضعیت سیستم</p></div>
       <div class="stat-pill"><span>📋</span><span class="num" id="tpt">0</span><span>تسک فعال</span></div>
       <div class="stat-pill" data-permission="dashboard.organization_summary"><span>👥</span><span class="num" id="tpct">0</span><span>کارفرما</span></div>
-      <button id="lang-toggle" onclick="toggleLanguage()" title="فارسی / English" aria-label="زبان" data-no-i18n>EN</button>
       <button id="theme-toggle" onclick="toggleTheme()" title="حالت روشن/تیره" aria-label="حالت روشن یا تیره">🌙</button>
       <div id="notif-wrap">
         <button id="notif-bell" onclick="toggleNotifPanel(event)" title="اعلان‌ها" aria-label="اعلان‌ها">🔔<span id="notif-badge" class="notif-badge" style="display:none;">0</span></button>
@@ -1149,6 +1213,9 @@ select, select option { font-family: Vazirmatn, Tahoma, sans-serif !important; }
     </div>
   </div>
 </div>
+
+<!-- Language switch: outside #app so it is also there on the login screen. -->
+<button id="lang-toggle" onclick="toggleLanguage()" title="فارسی / English" aria-label="زبان" data-no-i18n>EN</button>
 
 <!-- MODALS -->
 <div class="mo" id="mtmpl">
